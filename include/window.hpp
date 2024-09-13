@@ -8,10 +8,11 @@
 class Window
 {
 public:
-    // TEMPORARY, REMOVE LATER
-    void waitForClose();
-    // create a new window, set rendering on a thread
-    Window(AppState& state);
+    // draw all that needs to be drawn
+    void redraw();
+
+    // create a new window
+    Window();
     // destroy the window and kill the thread
     ~Window();
 
@@ -29,19 +30,10 @@ private:
 
     int drawFilledCircle(SDL_Color color, int x, int y, int radius);
 
-    void renderLoop();
-    void redraw();
-
-    bool quitWindow{false};
-
     static constexpr int m_defaultWidth{1080};
     static constexpr int m_defaultHeight{1080};
     static constexpr int m_minWidth{300};
     static constexpr int m_minHeight{300};
-
-    AppState& m_state;
-
-    std::thread m_windowThread;
 
     SDL_Renderer *m_rendererSDL;
     SDL_Window *m_windowSDL;

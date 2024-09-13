@@ -1,9 +1,7 @@
 #include "window.hpp"
 
-Window::Window(AppState &state)
-    : m_state{state}
-    , m_windowThread{}
-    , m_rendererSDL{}
+Window::Window()
+    : m_rendererSDL{}
     , m_windowSDL{}
     , m_surfaceSDL{}
     , m_UIfontSDL{}
@@ -38,16 +36,11 @@ Window::Window(AppState &state)
         Debug::log("Failed to load font!");
     }
 
-    m_windowThread = std::thread(&Window::renderLoop, this); // sets rendering on a thread
-
     Debug::log("Window created.");
 }
 
 Window::~Window()
 {
-    quitWindow = true;
-    m_windowThread.join(); // waits for final draw loop to complete
-
     Debug::log("Destroying window...");
     // close fonts
     TTF_CloseFont(m_UIfontSDL);
@@ -62,11 +55,6 @@ Window::~Window()
     // Quit SDL subsystems
     SDL_Quit();
     Debug::log("Window destroyed.");
-}
-
-void Window::waitForClose()
-{
-    m_windowThread.join();
 }
 
 void Window::drawRectangle(SDL_Color color, SDL_Rect rect)
@@ -174,15 +162,6 @@ int Window::drawFilledCircle(SDL_Color color, int x, int y, int radius)
     }
 
     return status;
-}
-
-void Window::renderLoop()
-{
-    while (m_state != AppState::quit && quitWindow == false)
-    {
-        // Input::HandleInput();
-        redraw();
-    }
 }
 
 void Window::redraw()

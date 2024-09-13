@@ -6,9 +6,13 @@ int main()
 
     Debug::out("hello world for a fourth time");
 
-    Window w{state};
+    Window w{};
 
-    w.waitForClose();
+    while (state == AppState::simulation)
+    {
+        w.redraw();
+    }
+    
 
     return 0;
 }
