@@ -2,7 +2,7 @@ Project structure:
 ==================
 
 ## Base
-All base includes, such as SDL2 and Eigen.
+All base includes
 
 ## World
 Stores data about the world state
@@ -34,29 +34,23 @@ List of all balls
 ### NewBall(smth)
 Create a new ball and add it to Balls
 
-### UpdateBallLists()
-Calls UpdateBallList() on Display and Physics
 
-## Display
+## Window
 Draws things to the screen
 
-### All relevant SDL stuff
-Abstracted
+### drawLoop()
+Perpetually goes through all Balls, draws them, updates buffer, repeats. Returns when m_state != simulation
 
-### DisplayScale
+### displayScale
 Scale at which everything is drawn to the screen
 
-### &Balls
-Reference to World::Balls
-
-### UpdateBallList(&vector<Balls>)
-Updates Balls to be a reference to provided input (World::Balls)
-
-### DrawCircle(smth)
+### drawCircle(smth)
 Draw a circle on screen; main function for drawing balls
 
-### DisplayLoop()
-Perpetually goes through all Balls, draws them, updates buffer, repeats. Returns when Main::AppState == QUIT.
+## [TODO]
+
+### &balls
+Reference to World::Balls
 
 ## Input
 Anything related to getting input from the user

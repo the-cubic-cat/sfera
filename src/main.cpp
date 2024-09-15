@@ -4,15 +4,10 @@ int main()
 {
     AppState state = AppState::simulation;
 
-    Debug::out("hello world for a fourth time");
+    World world{};
+    world.newBall(1, {0, 0});
 
-    Window w{};
-
-    while (state == AppState::simulation)
-    {
-        w.redraw();
-    }
-    
+    Window window{state, world.getBalls()};
 
     return 0;
 }

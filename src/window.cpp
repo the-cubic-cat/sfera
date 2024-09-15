@@ -1,7 +1,9 @@
 #include "window.hpp"
 
-Window::Window()
-    : m_rendererSDL{}
+Window::Window(AppState& state, const std::vector<Ball>& balls)
+    : m_balls{balls}
+    , m_state{state}
+    , m_rendererSDL{}
     , m_windowSDL{}
     , m_surfaceSDL{}
     , m_UIfontSDL{}
@@ -37,6 +39,8 @@ Window::Window()
     }
 
     Debug::log("Window created.");
+
+    drawLoop();
 }
 
 Window::~Window()
@@ -55,6 +59,32 @@ Window::~Window()
     // Quit SDL subsystems
     SDL_Quit();
     Debug::log("Window destroyed.");
+}
+
+void Window::drawLoop()
+{
+    while (m_state == AppState::simulation)
+    {
+        redraw();
+    }
+}
+
+void Window::redraw()
+{
+    SDL_SetRenderDrawColor(m_rendererSDL, 0, 0, 0, 255);
+    SDL_RenderClear(m_rendererSDL);
+    for (Ball b : m_balls)
+    {
+        Vector2d screenPosition = b.getCurrentPosition() * m_displayScale 
+            + m_displayPositionOffset;
+        double screenRadius = b.getRadius() * m_displayScale;
+        SDL_Color color {255, 255, 255, 255};
+
+        drawFilledCircle(color, screenPosition.x(), screenPosition.y()
+            , screenRadius);
+    }
+    SDL_RenderPresent(m_rendererSDL);
+    // Utils::Out("redrew");
 }
 
 void Window::drawRectangle(SDL_Color color, SDL_Rect rect)
@@ -162,28 +192,4 @@ int Window::drawFilledCircle(SDL_Color color, int x, int y, int radius)
     }
 
     return status;
-}
-
-void Window::redraw()
-{
-    static int testI;
-
-    Debug::out("loop " + std::to_string(testI));
-
-    SDL_SetRenderDrawColor(m_rendererSDL, testI, 0, 0, 255);
-    SDL_RenderClear(m_rendererSDL);
-    /*for (int i = 0; i < World::Balls.size(); i++)
-    {
-        World::Balls[i].Draw();
-    }*/
-    drawRectangle({255, 255, 0, 255}, {50, 50, 1000, 1000});
-    SDL_RenderPresent(m_rendererSDL);
-    // Utils::Out("redrew");
-
-    ++testI;
-
-    if (testI > 255)
-    {
-        testI = 0;
-    }
 }
