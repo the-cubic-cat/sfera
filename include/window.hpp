@@ -1,7 +1,7 @@
 #pragma once
 
 #include "world.hpp"
-
+#include "window.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
@@ -12,6 +12,9 @@ public:
     Window(AppState& state, const std::vector<Ball>& balls);
     // destroy the window and kill the thread
     ~Window();
+
+    void drawCircle(Color color, Eigen::Vector2d position, double radius
+        , bool filled = true);
 
     // it doesn't make sense for windows to be copied or moved
     Window(const Window& window) = delete;
@@ -27,11 +30,11 @@ private:
     // draw all that needs to be drawn
     void redraw();
 
-    void drawRectangle(SDL_Color color, SDL_Rect rect);
+    void screenDrawRectangle(SDL_Color color, SDL_Rect rect);
 
-    int drawCircle(SDL_Color color, int x, int y, int radius);
+    int screenDrawCircle(SDL_Color color, int x, int y, int radius);
 
-    int drawFilledCircle(SDL_Color color, int x, int y, int radius);
+    int screenDrawFilledCircle(SDL_Color color, int x, int y, int radius);
 
     static constexpr int m_defaultWidth{1080};
     static constexpr int m_defaultHeight{1080};

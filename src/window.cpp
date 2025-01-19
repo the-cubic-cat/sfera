@@ -61,6 +61,24 @@ Window::~Window()
     Debug::log("Window destroyed.");
 }
 
+void Window::drawCircle(Color color, Eigen::Vector2d position, double radius
+    , bool filled)
+{
+    SDL_Color sdlC{color.r, color.g, color.b, 255};
+    Vector2d screenPosition = position * m_displayScale 
+        + m_displayPositionOffset;
+    int screenRadius = radius * m_displayScale;
+
+    if (filled)
+    {
+        screenDrawFilledCircle(sdlC, screenPosition.x(), screenPosition.y()
+            , screenRadius);
+        return;
+    }
+    screenDrawCircle(sdlC, screenPosition.x(), screenPosition.y()
+        , screenRadius);
+}
+
 void Window::drawLoop()
 {
     while (m_state == AppState::simulation)
@@ -80,20 +98,20 @@ void Window::redraw()
         double screenRadius = b.getRadius() * m_displayScale;
         SDL_Color color {255, 255, 255, 255};
 
-        drawFilledCircle(color, screenPosition.x(), screenPosition.y()
+        screenDrawFilledCircle(color, screenPosition.x(), screenPosition.y()
             , screenRadius);
     }
     SDL_RenderPresent(m_rendererSDL);
     // Utils::Out("redrew");
 }
 
-void Window::drawRectangle(SDL_Color color, SDL_Rect rect)
+void Window::screenDrawRectangle(SDL_Color color, SDL_Rect rect)
 {
     SDL_SetRenderDrawColor(m_rendererSDL, color.r, color.g, color.b, 255);
     SDL_RenderFillRect(m_rendererSDL, &rect);
 }
 
-int Window::drawCircle(SDL_Color color, int x, int y, int radius) // stolen: https://gist.github.com/Gumichan01/332c26f6197a432db91cc4327fcabb1c
+int Window::screenDrawCircle(SDL_Color color, int x, int y, int radius) // stolen: https://gist.github.com/Gumichan01/332c26f6197a432db91cc4327fcabb1c
 {
     SDL_SetRenderDrawColor(m_rendererSDL, color.r, color.g, color.b, color.a);
 
@@ -143,7 +161,7 @@ int Window::drawCircle(SDL_Color color, int x, int y, int radius) // stolen: htt
     return status;
 }
 
-int Window::drawFilledCircle(SDL_Color color, int x, int y, int radius)
+int Window::screenDrawFilledCircle(SDL_Color color, int x, int y, int radius)
 {
     SDL_SetRenderDrawColor(m_rendererSDL, color.r, color.g, color.b, color.a);
 

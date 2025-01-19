@@ -4,12 +4,21 @@
 #include "debug.hpp"
 
 using Eigen::Vector2d;
+class Window;
+
+struct Color
+{
+    int r{0};
+    int g{0};
+    int b{0};
+};
 
 class Ball
 {
 public:
     double getRadius() { return m_radius; }
     const Vector2d& getCurrentPosition() { return m_inputPosition; }
+    void draw(const Window& window);
 
 private:
     double m_radius; // in meters
