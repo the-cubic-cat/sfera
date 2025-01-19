@@ -2,40 +2,49 @@
 
 #include "appinfo.hpp"
 #include "debug.hpp"
+#include <cstdint>
+#include <ranges>
 
 using Eigen::Vector2d;
 class Window;
 
 struct Color
 {
-    int r{0};
-    int g{0};
-    int b{0};
+    std::uint8_t r{0};
+    std::uint8_t g{0};
+    std::uint8_t b{0};
+};
+
+class Keyframe
+{
+public:
+    Vector2d startPosition; // in meters
+    Vector2d velocity; // in meters/s
+    double keyframeTime; // in seconds
 };
 
 class Ball
 {
 public:
     double getRadius() { return m_radius; }
-    const Vector2d& getCurrentPosition() { return m_inputPosition; }
-    void draw(const Window& window);
+    const Vector2d getPositionAtTime(double time);
+    //void draw(const Window& window);
+    void newKeyframe(Keyframe keyframe);
 
 private:
     double m_radius; // in meters
-    Vector2d m_inputPosition; // in meters
+    double m_mass; // in kilograms
 
-    double m_mass; // in kilograms  
-    Vector2d m_velocity; // in meters/s
-
-    Vector2d m_currentPosition; // in meters
+    std::vector<Keyframe> m_keyframes;
 
     Ball(double radius, Vector2d position, double mass
-    , Vector2d velocity)
+    , Vector2d velocity, double time = 0)
         : m_radius{radius}
-        , m_inputPosition{position}
         , m_mass{mass}
-        , m_velocity{velocity}
-    {}
+        , m_keyframes{}
+    {
+        newKeyframe({position, velocity, time});
+    }
 
     friend class World;
 };

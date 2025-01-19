@@ -67,15 +67,15 @@ void Window::drawCircle(Color color, Eigen::Vector2d position, double radius
     SDL_Color sdlC{color.r, color.g, color.b, 255};
     Vector2d screenPosition = position * m_displayScale 
         + m_displayPositionOffset;
-    int screenRadius = radius * m_displayScale;
+    int screenRadius = (int)(radius * m_displayScale);
 
     if (filled)
     {
-        screenDrawFilledCircle(sdlC, screenPosition.x(), screenPosition.y()
-            , screenRadius);
+        screenDrawFilledCircle(sdlC, (int)screenPosition.x()
+            , (int)screenPosition.y(), screenRadius);
         return;
     }
-    screenDrawCircle(sdlC, screenPosition.x(), screenPosition.y()
+    screenDrawCircle(sdlC, (int)screenPosition.x(), (int)screenPosition.y()
         , screenRadius);
 }
 
@@ -91,15 +91,12 @@ void Window::redraw()
 {
     SDL_SetRenderDrawColor(m_rendererSDL, 0, 0, 0, 255);
     SDL_RenderClear(m_rendererSDL);
+    //TODO: rework time to be non-shit
+    double time{(double)SDL_GetTicks64() / 1000};
     for (Ball b : m_balls)
     {
-        Vector2d screenPosition = b.getCurrentPosition() * m_displayScale 
-            + m_displayPositionOffset;
-        double screenRadius = b.getRadius() * m_displayScale;
-        SDL_Color color {255, 255, 255, 255};
-
-        screenDrawFilledCircle(color, screenPosition.x(), screenPosition.y()
-            , screenRadius);
+        drawCircle({255, 255, 255}, b.getPositionAtTime(time), b.getRadius()
+        , true);
     }
     SDL_RenderPresent(m_rendererSDL);
     // Utils::Out("redrew");
@@ -110,8 +107,8 @@ void Window::screenDrawRectangle(SDL_Color color, SDL_Rect rect)
     SDL_SetRenderDrawColor(m_rendererSDL, color.r, color.g, color.b, 255);
     SDL_RenderFillRect(m_rendererSDL, &rect);
 }
-
-int Window::screenDrawCircle(SDL_Color color, int x, int y, int radius) // stolen: https://gist.github.com/Gumichan01/332c26f6197a432db91cc4327fcabb1c
+// stolen: https://gist.github.com/Gumichan01/332c26f6197a432db91cc4327fcabb1c
+int Window::screenDrawCircle(SDL_Color color, int x, int y, int radius)
 {
     SDL_SetRenderDrawColor(m_rendererSDL, color.r, color.g, color.b, color.a);
 
