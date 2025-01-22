@@ -2,19 +2,19 @@
 
 #include "world.hpp"
 #include "window.hpp"
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 
 class Window
 {
 public:
     // create a new window, IMMEDIATELY STARTING DRAW LOOP
-    Window(AppState& state, const std::vector<Ball>& balls);
-    // destroy the window and kill the thread
+    Window(AppState& state, const World& world);
+    // destroy the window
     ~Window();
 
-    void drawCircle(Color color, Eigen::Vector2d position, double radius
+    void drawCircle(SDL_Color color, Eigen::Vector2d position, double radius
         , bool filled = true);
+    
+    void drawRect(SDL_Color color, Rect rect, bool filled = true);
 
     // it doesn't make sense for windows to be copied or moved
     Window(const Window& window) = delete;
@@ -30,7 +30,9 @@ private:
     // draw all that needs to be drawn
     void redraw();
 
-    void screenDrawRectangle(SDL_Color color, SDL_Rect rect);
+    void screenDrawRect(SDL_Color color, SDL_Rect rect);
+
+    void screenDrawFilledRect(SDL_Color color, SDL_Rect rect);
 
     int screenDrawCircle(SDL_Color color, int x, int y, int radius);
 
@@ -41,7 +43,7 @@ private:
     static constexpr int m_minWidth{300};
     static constexpr int m_minHeight{300};
 
-    const std::vector<Ball>& m_balls;
+    const World& m_world;
     AppState& m_state;
 
     SDL_Renderer *m_rendererSDL;

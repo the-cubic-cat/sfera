@@ -1,7 +1,7 @@
 #include "window.hpp"
 
-Window::Window(AppState& state, const std::vector<Ball>& balls)
-    : m_balls{balls}
+Window::Window(AppState& state, const World& world)
+    : m_world{world}
     , m_state{state}
     , m_rendererSDL{}
     , m_windowSDL{}
@@ -61,22 +61,34 @@ Window::~Window()
     Debug::log("Window destroyed.");
 }
 
-void Window::drawCircle(Color color, Eigen::Vector2d position, double radius
+void Window::drawCircle(SDL_Color color, Eigen::Vector2d position, double radius
     , bool filled)
 {
-    SDL_Color sdlC{color.r, color.g, color.b, 255};
     Vector2d screenPosition = position * m_displayScale 
         + m_displayPositionOffset;
-    int screenRadius = (int)(radius * m_displayScale);
+    int screenRadius = static_cast<int>(radius * m_displayScale);
 
     if (filled)
     {
-        screenDrawFilledCircle(sdlC, (int)screenPosition.x()
+        screenDrawFilledCircle(color, (int)screenPosition.x()
             , (int)screenPosition.y(), screenRadius);
         return;
     }
-    screenDrawCircle(sdlC, (int)screenPosition.x(), (int)screenPosition.y()
+    screenDrawCircle(color, (int)screenPosition.x(), (int)screenPosition.y()
         , screenRadius);
+}
+
+void Window::drawRect(SDL_Color color, Rect rect, bool filled = true)
+{
+    SDL_Rect screenRect = static_cast<SDL_Rect>(rect * m_displayScale 
+        + m_displayPositionOffset);
+
+    if (filled)
+    {
+        screenDrawFilledRect(color, screenRect);
+        return;
+    }
+    screenDrawRect(color, screenRect);
 }
 
 void Window::drawLoop()
@@ -93,20 +105,29 @@ void Window::redraw()
     SDL_RenderClear(m_rendererSDL);
     //TODO: rework time to be non-shit
     double time{(double)SDL_GetTicks64() / 1000};
-    for (Ball b : m_balls)
+    for (Ball b : m_world.getBalls())
     {
         drawCircle({255, 255, 255}, b.getPositionAtTime(time), b.getRadius()
         , true);
     }
+    
+    drawRect({0, 0, 255}, m_world.getWorldBounds().value_or<Rect>({0, 0, 0, 0}));
+
     SDL_RenderPresent(m_rendererSDL);
     // Utils::Out("redrew");
 }
 
-void Window::screenDrawRectangle(SDL_Color color, SDL_Rect rect)
+void Window::screenDrawRect(SDL_Color color, SDL_Rect rect)
+{
+    SDL_SetRenderDrawColor(m_rendererSDL, color.r, color.g, color.b, 255);
+    SDL_RenderDrawRect(m_rendererSDL, &rect);
+}
+void Window::screenDrawFilledRect(SDL_Color color, SDL_Rect rect)
 {
     SDL_SetRenderDrawColor(m_rendererSDL, color.r, color.g, color.b, 255);
     SDL_RenderFillRect(m_rendererSDL, &rect);
 }
+
 // stolen: https://gist.github.com/Gumichan01/332c26f6197a432db91cc4327fcabb1c
 int Window::screenDrawCircle(SDL_Color color, int x, int y, int radius)
 {
