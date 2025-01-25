@@ -1,15 +1,14 @@
 #pragma once
 
-#include "world.hpp"
-#include "window.hpp"
+#include "system.hpp"
 
-class Window
+class Window : public System
 {
 public:
     // create a new window, IMMEDIATELY STARTING DRAW LOOP
     Window(AppState& state, const World& world);
     // destroy the window
-    ~Window();
+    virtual ~Window();
 
     void drawCircle(SDL_Color color, Eigen::Vector2d position, double radius
         , bool filled = true);
@@ -25,7 +24,7 @@ public:
 
 private:
     // begins executing draw loop. it will run while m_state == simulation.
-    void drawLoop();
+    virtual void loop();
 
     // draw all that needs to be drawn
     void redraw();
@@ -42,9 +41,6 @@ private:
     static constexpr int m_defaultHeight{1080};
     static constexpr int m_minWidth{300};
     static constexpr int m_minHeight{300};
-
-    const World& m_world;
-    AppState& m_state;
 
     SDL_Renderer *m_rendererSDL;
     SDL_Window *m_windowSDL;

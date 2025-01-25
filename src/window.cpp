@@ -1,8 +1,7 @@
 #include "window.hpp"
 
 Window::Window(AppState& state, const World& world)
-    : m_world{world}
-    , m_state{state}
+    : System{state, world}
     , m_rendererSDL{}
     , m_windowSDL{}
     , m_surfaceSDL{}
@@ -40,7 +39,7 @@ Window::Window(AppState& state, const World& world)
 
     Debug::log("Window created.");
 
-    drawLoop();
+    loop();
 }
 
 Window::~Window()
@@ -91,7 +90,7 @@ void Window::drawRect(SDL_Color color, Rect rect, bool filled)
     screenDrawRect(color, screenRect);
 }
 
-void Window::drawLoop()
+void Window::loop()
 {
     while (m_state == AppState::simulation)
     {
