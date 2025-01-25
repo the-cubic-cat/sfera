@@ -39,15 +39,12 @@ private:
     {
         newKeyframe({position, velocity, time});
     }
+    friend class World;
 };
 
 class World
 {
 public:
-    // only World can make new balls
-    friend Ball::Ball(double radius, Vector2d position, double mass
-    , Vector2d velocity, double time = 0);
-
     // creates a new ball, adds it to the ball list
     void newBall(double radius, Vector2d position, double mass = 1
     , Vector2d velocity = {0, 0});

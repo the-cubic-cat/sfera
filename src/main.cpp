@@ -5,10 +5,11 @@ int main()
     AppState state = AppState::simulation;
 
     World world{};
-    world.newBall(1, {0, 0}, 1, {1, 1});
+    world.newBall(0.5, {0, 0}, 1, {1, 1});
+    world.setWorldBounds({-5, -5, 10, 10});
     //std::thread physicsUpdate;
 
-    Window window{state, world.getBalls()};
+    Window window{state, world};
 
     return 0;
 }

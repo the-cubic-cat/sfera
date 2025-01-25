@@ -8,7 +8,7 @@ Window::Window(AppState& state, const World& world)
     , m_surfaceSDL{}
     , m_UIfontSDL{}
     , m_displayScale{100}
-    , m_displayPositionOffset{500, 500}
+    , m_displayPositionOffset{540, 540}
 {
     Debug::log("Creating window...");
     // basic setup
@@ -78,7 +78,7 @@ void Window::drawCircle(SDL_Color color, Eigen::Vector2d position, double radius
         , screenRadius);
 }
 
-void Window::drawRect(SDL_Color color, Rect rect, bool filled = true)
+void Window::drawRect(SDL_Color color, Rect rect, bool filled)
 {
     SDL_Rect screenRect = static_cast<SDL_Rect>(rect * m_displayScale 
         + m_displayPositionOffset);
@@ -107,11 +107,12 @@ void Window::redraw()
     double time{(double)SDL_GetTicks64() / 1000};
     for (Ball b : m_world.getBalls())
     {
-        drawCircle({255, 255, 255}, b.getPositionAtTime(time), b.getRadius()
-        , true);
+        drawCircle({255, 255, 255, 255}, b.getPositionAtTime(time)
+            , b.getRadius(), true);
     }
     
-    drawRect({0, 0, 255}, m_world.getWorldBounds().value_or<Rect>({0, 0, 0, 0}));
+    drawRect({0, 0, 255, 255}
+        , m_world.getWorldBounds().value_or<Rect>({0, 0, 0, 0}), false);
 
     SDL_RenderPresent(m_rendererSDL);
     // Utils::Out("redrew");

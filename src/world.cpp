@@ -26,7 +26,6 @@ const Vector2d Ball::getPositionAtTime(double time)
 void World::newBall(double radius, Vector2d position, double mass
 , Vector2d velocity)
 {
-    // vscode incorrectly marks this as error
     m_balls.push_back(Ball{radius, position, mass, velocity});
 }
 
