@@ -6,22 +6,13 @@
 // collision object колобжок)))
 #define COLLOBJ std::variant<Direction, std::reference_wrapper<Ball>>
 
-enum class Direction
-{
-    none,
-    up,
-    down,
-    left,
-    right
-};
-
 // class handling physics
 class Physiker
 {
 public:
     // create new physiker
     Physiker(AppState& state, World& world, double timestep = 0.002
-        , double collisionPrecision = 0.000000000000001);
+        , double collisionPrecision = 0.00000000001);
 
     void setTimestep(double timestep) { m_timestep = timestep; }
     double getTimestep() { return m_timestep; }
@@ -40,7 +31,10 @@ private:
     // (that is, its radius overlaps with bounds). if true, return ball if
     // it is touching bounds (that is, radius + m_collisionPrecision 
     // * radius overlaps with bounds)
-    std::vector<std::reference_wrapper<Ball>> getOutOfBoundsBalls(bool getTouching);
+    // returns a pair where the first COLLOBJ is the ball and the second one
+    // is the side of the bounds that it collided with/touched
+    std::vector<std::pair<COLLOBJ, COLLOBJ>> getOutOfBoundsBalls
+        (bool getTouching);
     // rename and split up later
     void collisionStuff();
 

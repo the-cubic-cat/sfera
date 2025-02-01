@@ -5,7 +5,7 @@ int main()
     AppState state = AppState::simulation;
 
     World world{};
-    world.newBall(0.5, {0, 0}, 1, {0, -0.67738});
+    world.newBall(0.5, {0, 0}, 1, {100, 221});
     world.setWorldBounds({-5, -5, 10, 10});
 
     Window window{state, world};

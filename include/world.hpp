@@ -22,10 +22,12 @@ class Ball
 public:
     double getRadius() const { return m_radius; }
     const Vector2d getPositionAtTime(double time) const;
+    const Keyframe& getLastKeyframeBeforeTime(double time) const;
     //void draw(const Window& window);
     void newKeyframe(Keyframe keyframe);
 
 private:
+
     double m_radius; // in meters
     double m_mass; // in kilograms
 

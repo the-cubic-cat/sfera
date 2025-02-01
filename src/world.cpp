@@ -8,17 +8,25 @@ void Ball::newKeyframe(Keyframe keyframe)
 
 const Vector2d Ball::getPositionAtTime(double time) const
 {
+    auto& k{getLastKeyframeBeforeTime(time)};
+
+    return k.startPosition + k.velocity * (time - k.keyframeTime);
+}
+
+const Keyframe& Ball::getLastKeyframeBeforeTime(double time) const
+{
     // starting from last keyframe, searches for first keyframe with time before
     // the specified time
     for (auto& k : std::views::reverse(m_keyframes))
     {
         if (k.keyframeTime < time)
         {
-            return k.startPosition + k.velocity * (time - k.keyframeTime);
+            return k;
         }
     }
+
     Debug::err("time is inaccessible: " + std::to_string(time));
-    return {0, 0};
+    return m_keyframes[0];
 }
 
 void World::newBall(double radius, Vector2d position, double mass

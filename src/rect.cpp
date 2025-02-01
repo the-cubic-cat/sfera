@@ -28,6 +28,42 @@ bool Rect::contains(Eigen::Vector2d vector) const
     return false;
 }
 
+double Rect::getTop()
+{
+    if (y < y + h)
+    {
+        return y;
+    }
+    return y + h;
+}
+
+double Rect::getBottom()
+{
+    if (y > y + h)
+    {
+        return y;
+    }
+    return y + h;
+}
+
+double Rect::getLeft()
+{
+    if (x < x + w)
+    {
+        return x;
+    }
+    return x + w;
+}
+
+double Rect::getRight()
+{
+    if (x > x + w)
+    {
+        return x;
+    }
+    return x + w;
+}
+
 Rect operator*(const Rect& r, const double& d)
 {
     return {r.x * d, r.y * d, r.w * d, r.h * d};
