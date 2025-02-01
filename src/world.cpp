@@ -3,24 +3,22 @@
 void Ball::newKeyframe(Keyframe keyframe)
 {
     m_keyframes.push_back(keyframe);
+    Debug::out("new keyframe");
 }
 
-const Vector2d Ball::getPositionAtTime(double time)
+const Vector2d Ball::getPositionAtTime(double time) const
 {
-    Keyframe& lastKey{m_keyframes.back()};
-
     // starting from last keyframe, searches for first keyframe with time before
     // the specified time
     for (auto& k : std::views::reverse(m_keyframes))
     {
         if (k.keyframeTime < time)
         {
-            lastKey = k;
-            break;
+            return k.startPosition + k.velocity * (time - k.keyframeTime);
         }
     }
-    return lastKey.startPosition + lastKey.velocity * (time 
-        - lastKey.keyframeTime);
+    Debug::err("time is inaccessible: " + std::to_string(time));
+    return {0, 0};
 }
 
 void World::newBall(double radius, Vector2d position, double mass
@@ -40,6 +38,11 @@ const std::optional<Rect>& World::getWorldBounds() const
 }
 
 const std::vector<Ball>& World::getBalls() const
+{
+    return m_balls;
+}
+
+std::vector<Ball>& World::getBallsModifiable()
 {
     return m_balls;
 }

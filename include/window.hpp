@@ -2,10 +2,11 @@
 
 #include "system.hpp"
 
-class Window : public System
+// class handling the window and drawing in it
+class Window
 {
 public:
-    // create a new window, IMMEDIATELY STARTING DRAW LOOP
+    // create a new window
     Window(AppState& state, const World& world);
     // destroy the window
     virtual ~Window();
@@ -15,6 +16,9 @@ public:
     
     void drawRect(SDL_Color color, Rect rect, bool filled = true);
 
+    // begins executing draw loop. it will run while m_state == simulation.
+    void loop();
+
     // it doesn't make sense for windows to be copied or moved
     Window(const Window& window) = delete;
     Window& operator=(const Window& window) = delete;
@@ -23,8 +27,6 @@ public:
     Window& operator=(Window&& window) = delete;
 
 private:
-    // begins executing draw loop. it will run while m_state == simulation.
-    virtual void loop();
 
     // draw all that needs to be drawn
     void redraw();
@@ -50,4 +52,7 @@ private:
 
     float m_displayScale;
     Eigen::Vector2d m_displayPositionOffset;
+
+    const AppState& m_state;
+    const World& m_world;
 };

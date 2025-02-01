@@ -20,8 +20,8 @@ public:
 class Ball
 {
 public:
-    double getRadius() { return m_radius; }
-    const Vector2d getPositionAtTime(double time);
+    double getRadius() const { return m_radius; }
+    const Vector2d getPositionAtTime(double time) const;
     //void draw(const Window& window);
     void newKeyframe(Keyframe keyframe);
 
@@ -57,6 +57,9 @@ public:
 
     // get a const reference to the ball list
     const std::vector<Ball>& getBalls() const;
+
+    // get a modifiable (non-const) reference to the ball list
+    std::vector<Ball>& getBallsModifiable();
 
     World();
     ~World() = default;

@@ -2,8 +2,9 @@
 
 #include "world.hpp"
 
-class System
+/*class System
 {
+    // це жопа
 public:
     // create a new system
     System(AppState& state, const World& world)
@@ -27,4 +28,4 @@ protected:
     // references to world and app state
     const World& m_world;
     AppState& m_state;
-};
+};*/

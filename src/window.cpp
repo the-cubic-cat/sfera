@@ -1,13 +1,14 @@
 #include "window.hpp"
 
 Window::Window(AppState& state, const World& world)
-    : System{state, world}
-    , m_rendererSDL{}
+    : m_rendererSDL{}
     , m_windowSDL{}
     , m_surfaceSDL{}
     , m_UIfontSDL{}
     , m_displayScale{100}
     , m_displayPositionOffset{540, 540}
+    , m_state{state}
+    , m_world{world}
 {
     Debug::log("Creating window...");
     // basic setup
@@ -38,8 +39,6 @@ Window::Window(AppState& state, const World& world)
     }
 
     Debug::log("Window created.");
-
-    loop();
 }
 
 Window::~Window()
@@ -71,6 +70,8 @@ void Window::drawCircle(SDL_Color color, Eigen::Vector2d position, double radius
     {
         screenDrawFilledCircle(color, (int)screenPosition.x()
             , (int)screenPosition.y(), screenRadius);
+        screenDrawFilledRect({255, 0, 0, 255}, {(int)screenPosition.x()
+            , (int)screenPosition.y(), 5, 5});
         return;
     }
     screenDrawCircle(color, (int)screenPosition.x(), (int)screenPosition.y()
@@ -104,7 +105,7 @@ void Window::redraw()
     SDL_RenderClear(m_rendererSDL);
     //TODO: rework time to be non-shit
     double time{(double)SDL_GetTicks64() / 1000};
-    for (Ball b : m_world.getBalls())
+    for (const auto& b : m_world.getBalls())
     {
         drawCircle({255, 255, 255, 255}, b.getPositionAtTime(time)
             , b.getRadius(), true);
