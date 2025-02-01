@@ -26,7 +26,7 @@ private:
     // get touching: if false, return only if the ball is outside the bounds 
     // (that is, its radius overlaps with bounds). if true, return ball if
     // it is touching bounds (that is, radius + m_collisionPrecision 
-    // * radius * speed overlaps with bounds)
+    // * radius overlaps with bounds)
     std::vector<std::reference_wrapper<Ball>> getOutOfBoundsBalls(bool getTouching);
 
     // interval at which physics calculations will be performed

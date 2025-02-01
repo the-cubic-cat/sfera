@@ -14,7 +14,7 @@ void Physiker::loop()
     while (m_state == AppState::simulation)
     {
         m_simulationTime += m_timestep;
-        for (auto& b : getOutOfBoundsBalls(false))
+        for (auto& b : getOutOfBoundsBalls(true))
         {
             b.get().newKeyframe({{0, 0}, {0, 0}, m_simulationTime});
         }
@@ -24,18 +24,20 @@ void Physiker::loop()
 std::vector<std::reference_wrapper<Ball>> Physiker::getOutOfBoundsBalls
     (bool getTouching)
 {
-    std::vector<std::reference_wrapper<Ball>> r{};
+    std::vector<std::reference_wrapper<Ball>> result{};
     if (!m_world.getWorldBounds())
     {
-        return r;
+        return result;
     }
     for (auto& b : m_world.getBallsModifiable())
     {
+        double rad {getTouching 
+            ? b.getRadius() + b.getRadius() * m_collisionPrecision
+            : b.getRadius()};
+
         // this is the area in which the *center* of the ball can exist
         Rect ballCollisionBounds
-            { m_world.getWorldBounds().value().growBy(-b.getRadius())};
-        
-        if (!)
+            { m_world.getWorldBounds().value().growBy(-rad)};
         
         if (!ballCollisionBounds.contains(b.getPositionAtTime(m_simulationTime)))
         {
@@ -43,8 +45,8 @@ std::vector<std::reference_wrapper<Ball>> Physiker::getOutOfBoundsBalls
                 + std::to_string(b.getPositionAtTime(m_simulationTime).x()) + 
                 "; " + std::to_string(
                 b.getPositionAtTime(m_simulationTime).y()));
-            r.push_back(b);
+            result.push_back(b);
         }
     }
-    return r;
+    return result;
 }
