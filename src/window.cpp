@@ -70,8 +70,8 @@ void Window::drawCircle(SDL_Color color, Eigen::Vector2d position, double radius
     {
         screenDrawFilledCircle(color, (int)screenPosition.x()
             , (int)screenPosition.y(), screenRadius);
-        screenDrawFilledRect({255, 0, 0, 255}, {(int)screenPosition.x()
-            , (int)screenPosition.y(), 5, 5});
+        /*screenDrawFilledRect({255, 0, 0, 255}, {(int)screenPosition.x()
+            , (int)screenPosition.y(), 5, 5});*/
         return;
     }
     screenDrawCircle(color, (int)screenPosition.x(), (int)screenPosition.y()
@@ -107,7 +107,7 @@ void Window::redraw()
     double time{(double)SDL_GetTicks64() / 1000};
     for (const auto& b : m_world.getBalls())
     {
-        drawCircle({255, 255, 255, 255}, b.getPositionAtTime(time)
+        drawCircle(b.getColor(), b.getPositionAtTime(time)
             , b.getRadius(), true);
     }
     

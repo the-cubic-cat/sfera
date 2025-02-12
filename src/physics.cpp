@@ -14,19 +14,28 @@ void Physiker::loop()
 {
     while (m_state == AppState::simulation)
     {
+        if (m_simulationTime > 500) { continue; }
         m_simulationTime += m_timestep;
         collisionStuff();
         for (auto& colpair : getOutOfBoundsBalls(true))
         {
             //b.get().newKeyframe({{0, 0}, {0, 0}, m_simulationTime});
-            auto b{get<std::reference_wrapper<Ball>>(colpair.first)};
-            auto& ballPos{b.get().getPositionAtTime(m_simulationTime)};
+            auto& b{colpair.getBall()};
+
+            auto& ballPos{b.getPositionAtTime(m_simulationTime)};
             auto& ballVel
-                { b.get().getLastKeyframeBeforeTime(m_simulationTime).velocity };
+                { b.getLastKeyframeBeforeTime(m_simulationTime).velocity };
             
             Keyframe keyframe{ballPos, ballVel, m_simulationTime};
 
-            switch (get<Direction>(colpair.second))
+            if (getOutOfBoundsBalls(true).size() > 1)
+            {
+                //keyframe.startPosition = {0, 0};
+                //keyframe.velocity = {0, 0};
+                Debug::log("more than 1 ball colliding");
+            }
+
+            switch (colpair.getDir())
             {
             case Direction::right:
             case Direction::left:
@@ -45,7 +54,7 @@ void Physiker::loop()
                 break;
             }
 
-            b.get().newKeyframe(keyframe);
+            b.newKeyframe(keyframe);
         }
     }
 }
@@ -94,10 +103,38 @@ void Physiker::collisionStuff()
     }
 }
 
-std::vector<std::pair<COLLOBJ, COLLOBJ>> Physiker::getOutOfBoundsBalls
-    (bool getTouching)
+std::vector<BallPair> Physiker::getCollidingBalls(bool getTouching)
 {
-    std::vector<std::pair<COLLOBJ, COLLOBJ>> result{};
+    std::vector<BallPair> result;
+    auto& balls = m_world.getBallsModifiable();
+
+    for (auto& ba : balls){
+    for (auto& bb : balls)
+    {
+        if (bb == ba) { continue; }
+
+        Eigen::Vector2d aPos{ba.getPositionAtTime(m_simulationTime)};
+        double aRad{ba.getRadius()};
+
+        Eigen::Vector2d bPos{bb.getPositionAtTime(m_simulationTime)};
+        double bRad{bb.getRadius()};
+        
+        // not knowing vector math, the fact that norm() returns the absolute
+        // value of a vector and not the normalized form of a vector severely
+        // fucked me over
+        double distanceSquare{((aPos - bPos).squaredNorm())};
+        double collisionDistance{aRad + bRad};
+
+        if (getTouching) 
+            { collisionDistance += std::max(bRad, aRad) * m_collisionPrecision; }
+        
+
+    }}
+}
+
+std::vector<BoundBallPair> Physiker::getOutOfBoundsBalls(bool getTouching)
+{
+    std::vector<BoundBallPair> result{};
     if (!m_world.getWorldBounds())
     {
         return result;
@@ -136,7 +173,7 @@ std::vector<std::pair<COLLOBJ, COLLOBJ>> Physiker::getOutOfBoundsBalls
         else if (pos.y() <= collisionBounds.getTop())   { dir = Direction::up;   }
         else if (pos.y() >= collisionBounds.getBottom()){ dir = Direction::down; }
         
-        std::pair<COLLOBJ, COLLOBJ> collisionPair{b, dir};
+        BoundBallPair collisionPair{b, dir};
         
         result.push_back(collisionPair);
     }

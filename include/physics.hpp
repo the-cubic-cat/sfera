@@ -3,8 +3,40 @@
 #include "system.hpp"
 #include <variant>
 
-// collision object колобжок)))
+/* collision object колобжок)))
 #define COLLOBJ std::variant<Direction, std::reference_wrapper<Ball>>
+#define COLLPAIR std::pair<COLLOBJ, COLLOBJ>*/
+
+class BoundBallPair
+{
+public:
+    BoundBallPair(Ball& ball, Direction direction)
+        : m_ball{ball}
+        , m_dir{direction}
+    {}
+
+    Ball& getBall() const { return m_ball; }
+    Direction getDir() const { return m_dir; }
+private:
+    Ball& m_ball;
+    Direction m_dir;
+};
+
+class BallPair
+{
+public:
+    // REALLY FUCKING IMPORTANT!!! id of first ball is ALWAYS lower than of second
+    BallPair(Ball& ballA, Ball& ballB)
+        : m_first{ballA.getID() < ballB.getID() ? ballA : ballB}
+        , m_second{ballA.getID() < ballB.getID() ? ballB : ballA}
+    {}
+
+    Ball& getFirst() const { return m_first; }
+    Ball& getSecond() const { return m_second; }
+private:
+    Ball& m_first;
+    Ball& m_second;
+};
 
 // class handling physics
 class Physiker
@@ -12,7 +44,7 @@ class Physiker
 public:
     // create new physiker
     Physiker(AppState& state, World& world, double timestep = 0.002
-        , double collisionPrecision = 0.00000000001);
+        , double collisionPrecision = 0.000000001);
 
     void setTimestep(double timestep) { m_timestep = timestep; }
     double getTimestep() { return m_timestep; }
@@ -31,10 +63,11 @@ private:
     // (that is, its radius overlaps with bounds). if true, return ball if
     // it is touching bounds (that is, radius + m_collisionPrecision 
     // * radius overlaps with bounds)
-    // returns a pair where the first COLLOBJ is the ball and the second one
-    // is the side of the bounds that it collided with/touched
-    std::vector<std::pair<COLLOBJ, COLLOBJ>> getOutOfBoundsBalls
-        (bool getTouching);
+    std::vector<BoundBallPair> getOutOfBoundsBalls(bool getTouching);
+
+    std::vector<BallPair> getCollidingBalls(bool getTouching);
+
+    std::vector<BallPair> removeDuplicatePairs(std::vector<BallPair>);
     // rename and split up later
     void collisionStuff();
 

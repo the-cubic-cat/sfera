@@ -6,6 +6,15 @@ void Ball::newKeyframe(Keyframe keyframe)
     Debug::out("new keyframe");
 }
 
+bool operator== (const Ball& a, const Ball& b)
+{
+    return a.getID() == b.getID();
+}
+bool operator!= (const Ball& a, const Ball& b)
+{
+    return !operator==(a, b);
+}
+
 const Vector2d Ball::getPositionAtTime(double time) const
 {
     auto& k{getLastKeyframeBeforeTime(time)};
@@ -30,9 +39,9 @@ const Keyframe& Ball::getLastKeyframeBeforeTime(double time) const
 }
 
 void World::newBall(double radius, Vector2d position, double mass
-, Vector2d velocity)
+    , Vector2d velocity, SDL_Color color, double time)
 {
-    m_balls.push_back(Ball{radius, position, mass, velocity});
+    m_balls.push_back(Ball{radius, position, mass, velocity, color, time});
 }
 
 void World::setWorldBounds(const Rect& bounds)

@@ -9,6 +9,8 @@
 using Eigen::Vector2d;
 class Window;
 
+struct SDL_Color;
+
 class Keyframe
 {
 public:
@@ -22,7 +24,9 @@ class Ball
 public:
     double getRadius() const { return m_radius; }
     const Vector2d getPositionAtTime(double time) const;
+    SDL_Color getColor() const { return m_color; }
     const Keyframe& getLastKeyframeBeforeTime(double time) const;
+    int getID() const { return m_id; }
     //void draw(const Window& window);
     void newKeyframe(Keyframe keyframe);
 
@@ -30,26 +34,41 @@ private:
 
     double m_radius; // in meters
     double m_mass; // in kilograms
+    SDL_Color m_color;
 
     std::vector<Keyframe> m_keyframes;
 
-    Ball(double radius, Vector2d position, double mass
-    , Vector2d velocity, double time = 0)
+    int m_id; // used to compare balls
+
+    Ball(double radius, Vector2d position, double mass, Vector2d velocity
+        , SDL_Color color = {255, 255, 255, 255}, double time = 0)
         : m_radius{radius}
         , m_mass{mass}
+        , m_color{color}
         , m_keyframes{}
+        , m_id{newBallID()}
     {
         newKeyframe({position, velocity, time});
     }
+
+    int newBallID()
+    {
+        static int s_ballId{0};
+        return s_ballId++;
+    }
+
     friend class World;
 };
+bool operator== (const Ball& a, const Ball& b);
+bool operator!= (const Ball& a, const Ball& b);
 
 class World
 {
 public:
     // creates a new ball, adds it to the ball list
     void newBall(double radius, Vector2d position, double mass = 1
-    , Vector2d velocity = {0, 0});
+        , Vector2d velocity = {0, 0}, SDL_Color color = {255, 255, 255, 255}
+        , double time = 0);
 
     // set the world bounds
     void setWorldBounds(const Rect& bounds);
