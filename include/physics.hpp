@@ -17,8 +17,13 @@ public:
 
     Ball& getBall() const { return m_ball; }
     Direction getDir() const { return m_dir; }
+
+    /*BoundBallPair(const BoundBallPair& b) = default;
+    BoundBallPair& operator=(const BoundBallPair& b) = default;
+    BoundBallPair(const BoundBallPair&& b) = default;*/
+
 private:
-    Ball& m_ball;
+    std::reference_wrapper<Ball> m_ball;
     Direction m_dir;
 };
 
@@ -33,9 +38,39 @@ public:
 
     Ball& getFirst() const { return m_first; }
     Ball& getSecond() const { return m_second; }
+
+    friend struct std::hash<BallPair>;
 private:
-    Ball& m_first;
-    Ball& m_second;
+    std::reference_wrapper<Ball> m_first;
+    std::reference_wrapper<Ball> m_second;
+};
+bool operator== (const BallPair& a, const BallPair& b);
+bool operator!= (const BallPair& a, const BallPair& b);
+
+template <>
+struct std::hash<BallPair>
+{
+    std::size_t operator()(const BallPair& bp) const
+    {
+        // zero fucking clue what this does, idk shit about bitshifting
+        // stolen: https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
+        return ((hash<int>()(bp.m_first.get().getID())
+             ^ (hash<int>()(bp.m_second.get().getID()) << 1)) >> 1);
+    }
+};
+
+// certified no duplicates
+class BallPairVector
+{
+public:
+    BallPairVector(std::vector<BallPair> vector)
+        : m_vect{vectRemoveDuplicates(vector)}
+    {}
+
+    const std::vector<BallPair>& get() { return m_vect; }
+
+private:
+    std::vector<BallPair> m_vect;
 };
 
 // class handling physics
@@ -65,9 +100,7 @@ private:
     // * radius overlaps with bounds)
     std::vector<BoundBallPair> getOutOfBoundsBalls(bool getTouching);
 
-    std::vector<BallPair> getCollidingBalls(bool getTouching);
-
-    std::vector<BallPair> removeDuplicatePairs(std::vector<BallPair>);
+    BallPairVector getCollidingBalls(bool getTouching);
     // rename and split up later
     void collisionStuff();
 

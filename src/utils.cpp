@@ -1,4 +1,4 @@
-#include "rect.hpp"
+#include "utils.hpp"
 #include <iostream>
 
 Rect::operator SDL_Rect() const
@@ -75,5 +75,4 @@ Rect operator+(const Rect& r, const Eigen::Vector2d& v)
 }
 
 // stolen: https://stackoverflow.com/questions/54118163/most-efficient-way-to-determine-if-value-between-two-other-values-inclusive
-// should probably move this somewhere else
 bool inRange(double p, double v1, double v2) { return (p < v1) != (p < v2); }

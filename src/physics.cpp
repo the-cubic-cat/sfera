@@ -1,5 +1,17 @@
 #include "physics.hpp"
 
+bool operator== (const BallPair& a, const BallPair& b)
+{
+    if (a.getFirst() == b.getFirst() && a.getSecond() == b.getSecond())
+    { return true; }
+
+    return false;
+}
+bool operator!= (const BallPair& a, const BallPair& b)
+{
+    return !operator==(a, b);
+}
+
 Physiker::Physiker(AppState& state, World& world, double timestep
     , double collisionPrecision)
     : m_timestep{timestep}
@@ -17,6 +29,14 @@ void Physiker::loop()
         if (m_simulationTime > 500) { continue; }
         m_simulationTime += m_timestep;
         collisionStuff();
+
+        auto collidingBalls{getCollidingBalls(true)};
+        for (auto& colpair : collidingBalls.get())
+        {
+            Debug::log("balls collided");
+            colpair.getFirst().newKeyframe({{-1, 0}, {0, 0}, m_simulationTime});
+            colpair.getSecond().newKeyframe({{1, 0}, {0, 0}, m_simulationTime});
+        }
         for (auto& colpair : getOutOfBoundsBalls(true))
         {
             //b.get().newKeyframe({{0, 0}, {0, 0}, m_simulationTime});
@@ -103,7 +123,7 @@ void Physiker::collisionStuff()
     }
 }
 
-std::vector<BallPair> Physiker::getCollidingBalls(bool getTouching)
+BallPairVector Physiker::getCollidingBalls(bool getTouching)
 {
     std::vector<BallPair> result;
     auto& balls = m_world.getBallsModifiable();
@@ -128,8 +148,15 @@ std::vector<BallPair> Physiker::getCollidingBalls(bool getTouching)
         if (getTouching) 
             { collisionDistance += std::max(bRad, aRad) * m_collisionPrecision; }
         
+        double collisionDistanceSquare{collisionDistance * collisionDistance};
 
+        if (distanceSquare <= collisionDistanceSquare)
+        {
+            result.push_back({ba, bb});
+        }
     }}
+
+    return result;
 }
 
 std::vector<BoundBallPair> Physiker::getOutOfBoundsBalls(bool getTouching)
