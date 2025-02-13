@@ -23,24 +23,22 @@ public:
     void setMS(int64_t milliseconds) { m_timeMS = milliseconds; }
     // get underlying milliseconds
     int64_t getMS() const { return m_timeMS; }
-
-    operator double() const { return m_timeMS * 1000; }
+    //get seconds
+    operator double() const { return static_cast<double>(m_timeMS * 1000); }
 private:
     int64_t m_timeMS; // internally used integer time
 };
-Time operator+(const Time& a, const Time& b) { return a.getMS() + b.getMS(); }
-Time operator+(const Time& a, const double& b)
-    { return a.getMS() + std::lround(b * 1000); }
+Time operator+ (const Time& a, const Time&   b);
+Time operator+ (const Time& a, const double& b);
 
-Time operator-(const Time& a, const Time& b) { return a.getMS() - b.getMS(); }
-Time operator-(const Time& a, const double& b)
-    { return a.getMS() - std::lround(b * 1000); }
+Time operator- (const Time& a, const Time&   b);
+Time operator- (const Time& a, const double& b);
 
-Time operator< (const Time& a, const Time& b){ return a.getMS() < b.getMS(); }
-Time operator> (const Time& a, const Time& b){ return a.getMS() > b.getMS(); }
-Time operator==(const Time& a, const Time& b){ return a.getMS() ==b.getMS(); }
-Time operator>=(const Time& a, const Time& b){ return a.getMS() >=b.getMS(); }
-Time operator<=(const Time& a, const Time& b){ return a.getMS() <=b.getMS(); }
+Time operator< (const Time& a, const Time& b);
+Time operator> (const Time& a, const Time& b);
+Time operator==(const Time& a, const Time& b);
+Time operator>=(const Time& a, const Time& b);
+Time operator<=(const Time& a, const Time& b);
 
 struct Rect
 {

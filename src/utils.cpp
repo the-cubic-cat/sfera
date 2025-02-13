@@ -1,6 +1,20 @@
 #include "utils.hpp"
 #include <iostream>
 
+Time operator+(const Time& a, const Time& b) { return a.getMS() + b.getMS(); }
+Time operator+(const Time& a, const double& b)
+    { return a.getMS() + std::lround(b * 1000.0); }
+
+Time operator-(const Time& a, const Time& b) { return a.getMS() - b.getMS(); }
+Time operator-(const Time& a, const double& b)
+    { return a.getMS() - std::lround(b * 1000.0); }
+
+Time operator< (const Time& a, const Time& b){ return a.getMS() < b.getMS(); }
+Time operator> (const Time& a, const Time& b){ return a.getMS() > b.getMS(); }
+Time operator==(const Time& a, const Time& b){ return a.getMS() ==b.getMS(); }
+Time operator>=(const Time& a, const Time& b){ return a.getMS() >=b.getMS(); }
+Time operator<=(const Time& a, const Time& b){ return a.getMS() <=b.getMS(); }
+
 Rect::operator SDL_Rect() const
 {
     return {static_cast<int>(x), static_cast<int>(y)
