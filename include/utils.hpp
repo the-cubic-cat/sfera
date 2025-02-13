@@ -12,12 +12,42 @@ enum class Direction
     right
 };
 
+class Time
+{
+public:
+    Time(): m_timeMS{0} {}
+    // INITIALIZED WITH SECONDS
+    Time(double timeS) : m_timeMS{std::lround(timeS * 1000)} {}
+
+    // directly set underlying milliseconds
+    void setMS(int64_t milliseconds) { m_timeMS = milliseconds; }
+    // get underlying milliseconds
+    int64_t getMS() const { return m_timeMS; }
+
+    operator double() const { return m_timeMS * 1000; }
+private:
+    int64_t m_timeMS; // internally used integer time
+};
+Time operator+(const Time& a, const Time& b) { return a.getMS() + b.getMS(); }
+Time operator+(const Time& a, const double& b)
+    { return a.getMS() + std::lround(b * 1000); }
+
+Time operator-(const Time& a, const Time& b) { return a.getMS() - b.getMS(); }
+Time operator-(const Time& a, const double& b)
+    { return a.getMS() - std::lround(b * 1000); }
+
+Time operator< (const Time& a, const Time& b){ return a.getMS() < b.getMS(); }
+Time operator> (const Time& a, const Time& b){ return a.getMS() > b.getMS(); }
+Time operator==(const Time& a, const Time& b){ return a.getMS() ==b.getMS(); }
+Time operator>=(const Time& a, const Time& b){ return a.getMS() >=b.getMS(); }
+Time operator<=(const Time& a, const Time& b){ return a.getMS() <=b.getMS(); }
+
 struct Rect
 {
     double x, y; // all in meters
     double w, h;
 
-    explicit operator SDL_Rect() const;\
+    explicit operator SDL_Rect() const;
 
     // grow rect in all directions by value
     Rect growBy(double value) const;
@@ -36,6 +66,8 @@ struct Rect
 Rect operator*(const Rect& r, const double& d);
 
 Rect operator+(const Rect& r, const Eigen::Vector2d& v);
+
+
 
 bool inRange(double p, double v1, double v2);
 
