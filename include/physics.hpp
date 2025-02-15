@@ -78,11 +78,11 @@ class Physiker
 {
 public:
     // create new physiker
-    Physiker(AppState& state, World& world, double timestep = 0.002
-        , double collisionPrecision = 0.000000001);
+    Physiker(AppState& state, World& world, Time timestep = Time::makeMS(2)
+        , double collisionErrMargin = 0.00000001);
 
-    void setTimestep(double timestep) { m_timestep = timestep; }
-    double getTimestep() { return m_timestep; }
+    void setTimestep(Time timestep) { m_timestep = timestep; }
+    Time getTimestep() { return m_timestep; }
 
     // begins executing physics loop. it will run while m_state == simulation.
     void loop();
@@ -105,14 +105,14 @@ private:
     void collisionStuff();
 
     // interval at which physics calculations will be performed
-    double m_timestep;
+    Time m_timestep;
     // fraction of ball radius that will be used as maximum distance to consider
     // the ball touching
-    double m_collisionPrecision;
+    double collisionErrMargin;
     // maximum number of iterations while searching for collision time
     int m_maxCollisionIterations;
     // time currently being evalated in simulation
-    double m_simulationTime;
+    Time m_simulationTime;
 
     const AppState& m_state;
     World& m_world;

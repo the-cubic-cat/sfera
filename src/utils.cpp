@@ -1,19 +1,28 @@
 #include "utils.hpp"
 #include <iostream>
 
-Time operator+(const Time& a, const Time& b) { return a.getMS() + b.getMS(); }
-Time operator+(const Time& a, const double& b)
-    { return a.getMS() + std::lround(b * 1000.0); }
+Time operator+(const Time& a, const Time& b) 
+{ return Time::makeNS(a.getNS() + b.getNS()); }
 
-Time operator-(const Time& a, const Time& b) { return a.getMS() - b.getMS(); }
-Time operator-(const Time& a, const double& b)
-    { return a.getMS() - std::lround(b * 1000.0); }
+Time operator-(const Time& a, const Time& b) 
+{ return Time::makeNS(a.getNS() - b.getNS()); }
 
-Time operator< (const Time& a, const Time& b){ return a.getMS() < b.getMS(); }
-Time operator> (const Time& a, const Time& b){ return a.getMS() > b.getMS(); }
-Time operator==(const Time& a, const Time& b){ return a.getMS() ==b.getMS(); }
-Time operator>=(const Time& a, const Time& b){ return a.getMS() >=b.getMS(); }
-Time operator<=(const Time& a, const Time& b){ return a.getMS() <=b.getMS(); }
+Time& Time::operator+=(const Time& t) 
+{
+    m_timeNS += t.m_timeNS;
+    return *this;
+}
+Time& Time::operator-=(const Time& t) 
+{
+    m_timeNS -= t.m_timeNS;
+    return *this;
+}
+
+bool operator< (const Time& a, const Time& b){ return a.getNS() < b.getNS(); }
+bool operator> (const Time& a, const Time& b){ return a.getNS() > b.getNS(); }
+bool operator==(const Time& a, const Time& b){ return a.getNS() ==b.getNS(); }
+bool operator>=(const Time& a, const Time& b){ return a.getNS() >=b.getNS(); }
+bool operator<=(const Time& a, const Time& b){ return a.getNS() <=b.getNS(); }
 
 Rect::operator SDL_Rect() const
 {

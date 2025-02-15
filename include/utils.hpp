@@ -12,33 +12,67 @@ enum class Direction
     right
 };
 
+#define million 1000000
+#define billion 1000000000
+
 class Time
 {
 public:
-    Time(): m_timeMS{0} {}
-    // INITIALIZED WITH SECONDS
-    Time(double timeS) : m_timeMS{std::lround(timeS * 1000)} {}
+    Time(): m_timeNS{0} {}
 
-    // directly set underlying milliseconds
-    void setMS(int64_t milliseconds) { m_timeMS = milliseconds; }
-    // get underlying milliseconds
-    int64_t getMS() const { return m_timeMS; }
-    //get seconds
-    operator double() const { return static_cast<double>(m_timeMS * 1000); }
+    Time(const Time& t) = default;
+
+    // set nanoseconds
+    void setNS(int64_t nanoseconds) { m_timeNS = nanoseconds; }
+    // get nanoseconds
+    int64_t getNS() const { return m_timeNS; }
+
+    // set milliseconds
+    void setMS(int64_t milliseconds) { m_timeNS = milliseconds * million; }
+    // get milliseconds
+    int64_t getMS() const { return m_timeNS / million; }
+    
+    // set seconds with double (imprecise)
+    void setS(double seconds) { setMS(static_cast<int64_t>(seconds * million)); }
+    // get seconds double (imprecise)
+    double getS() const { return static_cast<double>(m_timeNS) / billion; }
+
+    Time getHalf() { return makeNS(m_timeNS / 2); }
+
+    static Time makeNS(int64_t nanoseconds)
+    {
+        Time t{};
+        t.setNS(nanoseconds);
+        return t;
+    }
+    static Time makeMS(int64_t milliseconds)
+    {
+        Time t{};
+        t.setMS(milliseconds);
+        return t;
+    }
+    static Time makeS(double seconds)
+    {
+        Time t{};
+        t.setS(seconds);
+        return t;
+    }
+
+    Time& operator+=(const Time& t);
+    Time& operator-=(const Time& t);
+
 private:
-    int64_t m_timeMS; // internally used integer time
+    int64_t m_timeNS; // internally used integer time in nanoseconds
 };
 Time operator+ (const Time& a, const Time&   b);
-Time operator+ (const Time& a, const double& b);
 
 Time operator- (const Time& a, const Time&   b);
-Time operator- (const Time& a, const double& b);
 
-Time operator< (const Time& a, const Time& b);
-Time operator> (const Time& a, const Time& b);
-Time operator==(const Time& a, const Time& b);
-Time operator>=(const Time& a, const Time& b);
-Time operator<=(const Time& a, const Time& b);
+bool operator< (const Time& a, const Time& b);
+bool operator> (const Time& a, const Time& b);
+bool operator==(const Time& a, const Time& b);
+bool operator>=(const Time& a, const Time& b);
+bool operator<=(const Time& a, const Time& b);
 
 struct Rect
 {

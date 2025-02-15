@@ -15,14 +15,14 @@ bool operator!= (const Ball& a, const Ball& b)
     return !operator==(a, b);
 }
 
-const Vector2d Ball::getPositionAtTime(double time) const
+const Vector2d Ball::getPositionAtTime(Time time) const
 {
     auto& k{getLastKeyframeBeforeTime(time)};
 
-    return k.startPosition + k.velocity * (time - k.keyframeTime);
+    return k.startPosition + k.velocity * (time - k.keyframeTime).getS();
 }
 
-const Keyframe& Ball::getLastKeyframeBeforeTime(double time) const
+const Keyframe& Ball::getLastKeyframeBeforeTime(Time time) const
 {
     // starting from last keyframe, searches for first keyframe with time before
     // the specified time
@@ -34,12 +34,12 @@ const Keyframe& Ball::getLastKeyframeBeforeTime(double time) const
         }
     }
 
-    Debug::err("time is inaccessible: " + std::to_string(time));
+    Debug::err("time is inaccessible: " + std::to_string(time.getS()));
     return m_keyframes[0];
 }
 
 void World::newBall(double radius, Vector2d position, double mass
-    , Vector2d velocity, SDL_Color color, double time)
+    , Vector2d velocity, SDL_Color color, Time time)
 {
     m_balls.push_back(Ball{radius, position, mass, velocity, color, time});
 }

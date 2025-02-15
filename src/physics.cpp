@@ -12,12 +12,12 @@ bool operator!= (const BallPair& a, const BallPair& b)
     return !operator==(a, b);
 }
 
-Physiker::Physiker(AppState& state, World& world, double timestep
-    , double collisionPrecision)
+Physiker::Physiker(AppState& state, World& world, Time timestep
+    , double collisionErrMargin)
     : m_timestep{timestep}
-    , m_collisionPrecision{collisionPrecision}
+    , collisionErrMargin{collisionErrMargin}
     , m_maxCollisionIterations{100}
-    , m_simulationTime{0}
+    , m_simulationTime{}
     , m_state{state}
     , m_world{world}
 {}
@@ -26,7 +26,7 @@ void Physiker::loop()
 {
     while (m_state == AppState::simulation)
     {
-        if (m_simulationTime > 500) { continue; }
+        if (m_simulationTime.getS() > 500) { continue; }
         m_simulationTime += m_timestep;
         collisionStuff();
 
@@ -86,12 +86,13 @@ void Physiker::collisionStuff()
         return;
     }
     // bs stands for "binary search"
-    double bsTimestep{m_timestep};
+    Time bsTimestep{m_timestep};
 
     int i{0};
     for (i = 0; i < m_maxCollisionIterations; i++)
     {
-        bsTimestep *= 0.5;
+        bsTimestep = bsTimestep.getHalf();
+        Debug::log(std::to_string(bsTimestep.getNS()));
         
         if (!getOutOfBoundsBalls(false).empty())
         {
@@ -117,9 +118,9 @@ void Physiker::collisionStuff()
     if (i == m_maxCollisionIterations)
     {
         Debug::err("collision time search failed after " 
-            + std::to_string(m_maxCollisionIterations) + " tries at physics time "
-            + std::to_string(m_simulationTime) + ". consider increasing"
-            " collisionPrecision.");
+            + std::to_string(m_maxCollisionIterations) 
+            + " tries at physics time " + std::to_string(m_simulationTime.getS()) 
+            + ". consider increasing collisionErrMargin.");
     }
 }
 
@@ -146,7 +147,7 @@ BallPairVector Physiker::getCollidingBalls(bool getTouching)
         double collisionDistance{aRad + bRad};
 
         if (getTouching) 
-            { collisionDistance += std::max(bRad, aRad) * m_collisionPrecision; }
+            { collisionDistance += std::max(bRad, aRad) * collisionErrMargin; }
         
         double collisionDistanceSquare{collisionDistance * collisionDistance};
 
@@ -170,7 +171,7 @@ std::vector<BoundBallPair> Physiker::getOutOfBoundsBalls(bool getTouching)
     {
         // effective radius of ball
         double rad {getTouching 
-            ? b.getRadius() + b.getRadius() * m_collisionPrecision
+            ? b.getRadius() + b.getRadius() * collisionErrMargin
             : b.getRadius()};
 
         // this is the area in which the *center* of the ball can exist
