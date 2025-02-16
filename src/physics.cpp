@@ -28,60 +28,120 @@ void Physiker::loop()
     {
         if (m_simulationTime.getS() > 500) { continue; }
         m_simulationTime += m_timestep;
-        collisionStuff();
 
-        auto collidingBalls{getCollidingBalls(true)};
-        for (auto& colpair : collidingBalls.get())
-        {
-            Debug::log("balls collided");
-            colpair.getFirst().newKeyframe({{-1, 0}, {0, 0}, m_simulationTime});
-            colpair.getSecond().newKeyframe({{1, 0}, {0, 0}, m_simulationTime});
-        }
-        for (auto& colpair : getOutOfBoundsBalls(true))
-        {
-            //b.get().newKeyframe({{0, 0}, {0, 0}, m_simulationTime});
-            auto& b{colpair.getBall()};
+        findCollisionTime();
 
-            auto& ballPos{b.getPositionAtTime(m_simulationTime)};
-            auto& ballVel
-                { b.getLastKeyframeBeforeTime(m_simulationTime).velocity };
-            
-            Keyframe keyframe{ballPos, ballVel, m_simulationTime};
-
-            if (getOutOfBoundsBalls(true).size() > 1)
-            {
-                //keyframe.startPosition = {0, 0};
-                //keyframe.velocity = {0, 0};
-                Debug::log("more than 1 ball colliding");
-            }
-
-            switch (colpair.getDir())
-            {
-            case Direction::right:
-            case Direction::left:
-                Debug::out("hit bottom or top, bouncing off");
-                keyframe.velocity = {-ballVel.x(), ballVel.y()};
-                break;
-
-            case Direction::up:
-            case Direction::down:
-                Debug::out("hit left or right, bouncing off");
-                keyframe.velocity = {ballVel.x(), -ballVel.y()};
-                break;
-            default:
-                Debug::err("something has gone terribly wrong in the code for"
-                    " collisions with bounds");
-                break;
-            }
-
-            b.newKeyframe(keyframe);
-        }
+        handleBoundsCollisions();
+        handleBallCollisions();
     }
 }
 
-void Physiker::collisionStuff()
+void Physiker::handleBoundsCollisions()
 {
-    if(getOutOfBoundsBalls(false).empty())
+    for (auto& colpair : getOutOfBoundsBalls(true))
+    {
+        //b.get().newKeyframe({{0, 0}, {0, 0}, m_simulationTime});
+        auto& b{colpair.getBall()};
+        auto& ballPos{b.getPositionAtTime(m_simulationTime)};
+        auto& ballVel
+            { b.getLastKeyframeBeforeTime(m_simulationTime).velocity };
+        
+        Keyframe keyframe{ballPos, ballVel, m_simulationTime};
+        if (getOutOfBoundsBalls(true).size() > 1)
+        {
+            //keyframe.startPosition = {0, 0};
+            //keyframe.velocity = {0, 0};
+            Debug::log("multiple balls colliding with bounds");
+        }
+        switch (colpair.getDir())
+        {
+        case Direction::right:
+        case Direction::left:
+            Debug::out("hit bottom or top, bouncing off");
+            keyframe.velocity = {-ballVel.x(), ballVel.y()};
+            break;
+        case Direction::up:
+        case Direction::down:
+            Debug::out("hit left or right, bouncing off");
+            keyframe.velocity = {ballVel.x(), -ballVel.y()};
+            break;
+        default:
+            Debug::err("something has gone terribly wrong in the code for"
+                " collisions with bounds");
+            break;
+        }
+        b.newKeyframe(keyframe);
+    }
+}
+
+void Physiker::handleBallCollisions()
+{
+    auto list{getCollidingBalls(true)};
+    for (auto& colpair : list.get())
+    {
+        Debug::log("balls collided");
+
+        using Eigen::Vector2d;
+        using Eigen::Rotation2Dd;
+
+        Ball& ballA{colpair.getFirst()};
+        Ball& ballB{colpair.getSecond()};
+
+        // ball centers unflipped
+        const Vector2d& Oauf
+            {ballA.getPositionAtTime(m_simulationTime)};
+        const Vector2d& Obuf
+            {ballB.getPositionAtTime(m_simulationTime)};
+
+        // ball centers
+        const Vector2d Oa
+            {flipVector2d(Oauf, Axis::Y)};
+        const Vector2d Ob 
+            {flipVector2d(Obuf, Axis::Y)};
+
+        // velocity vectors before collision (unflipped)
+        const Vector2d& Vauf
+            {ballA.getLastKeyframeBeforeTime(m_simulationTime).velocity};
+        const Vector2d& Vbuf
+            {ballB.getLastKeyframeBeforeTime(m_simulationTime).velocity};
+
+        // velocity vectors before collision (flipped)
+        const Vector2d Va{flipVector2d(Vauf, Axis::Y)};
+        const Vector2d Vb{flipVector2d(Vbuf, Axis::Y)};
+        
+        // ball masses
+        //const double& Ma{ballA.getMass()};
+        //const double& Mb{ballB.getMass()};
+
+        // direction from one ball center to another
+        const Vector2d dir{Oa - Ob};
+        //angle of the line joining the centers of both balls
+        Rotation2Dd prpndclr{atan2(dir.y(), dir.x())};
+
+        if (prpndclr.smallestAngle() > PI/2) { prpndclr.angle() -= PI; }
+        if (prpndclr.smallestAngle() < -PI/2) { prpndclr.angle() += PI; }
+
+        Debug::out(std::to_string(prpndclr.smallestAngle() / PI) + "п");
+        // angle of the tangent to both balls at the point of collision
+        Rotation2Dd tang{PI/2 - abs(prpndclr.smallestAngle())};
+        if (prpndclr.smallestAngle() > 0) { tang = tang.inverse(); }
+        
+        // reflected unit vectors
+        const Vector2d Va2unit
+            {reflectVector2d(Va, tang).normalized()};
+        const Vector2d Vb2unit
+            {reflectVector2d(Vb, tang).normalized()};
+
+
+        ballA.newKeyframe({Oauf, flipVector2d(Va2unit, Axis::Y) * Va.norm(), m_simulationTime});
+        ballB.newKeyframe({Obuf, flipVector2d(Vb2unit, Axis::Y) * Vb.norm(), m_simulationTime});
+    }
+}
+
+void Physiker::findCollisionTime()
+{
+    if(getOutOfBoundsBalls(false).empty() 
+        && getCollidingBalls(false).get().empty())
     {
         return;
     }
@@ -92,21 +152,23 @@ void Physiker::collisionStuff()
     for (i = 0; i < m_maxCollisionIterations; i++)
     {
         bsTimestep = bsTimestep.getHalf();
-        Debug::log(std::to_string(bsTimestep.getNS()));
         
-        if (!getOutOfBoundsBalls(false).empty())
+        if (!getOutOfBoundsBalls(false).empty() 
+            || !getCollidingBalls(false).get().empty())
         {
-            //printf("out of bounds balls found, rewinding\n");
+            //printf("collisions found, rewinding\n");
             m_simulationTime -= bsTimestep;
         }
-        else if (getOutOfBoundsBalls(true).empty())
+        else if (getOutOfBoundsBalls(true).empty() 
+            && getCollidingBalls(true).get().empty())
         {
-            //printf("no touching balls found, forwarding\n");
+            //printf("no touches found, forwarding\n");
             m_simulationTime += bsTimestep;
         }
-        else if (getOutOfBoundsBalls(true).size() > 1)
+        else if (getOutOfBoundsBalls(true).size() 
+            + getCollidingBalls(true).get().size() > 1)
         {
-            //printf("over one touching balls found, rewinding\n");
+            //printf("over one touches found, rewinding\n");
             m_simulationTime -= bsTimestep;
         }
         else
@@ -140,7 +202,7 @@ BallPairVector Physiker::getCollidingBalls(bool getTouching)
         Eigen::Vector2d bPos{bb.getPositionAtTime(m_simulationTime)};
         double bRad{bb.getRadius()};
         
-        // not knowing vector math, the fact that norm() returns the absolute
+        // not knowing linear algebra, the fact that norm() returns the absolute
         // value of a vector and not the normalized form of a vector severely
         // fucked me over
         double distanceSquare{((aPos - bPos).squaredNorm())};

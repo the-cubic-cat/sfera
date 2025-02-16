@@ -26,6 +26,7 @@ public:
     const Vector2d getPositionAtTime(Time time) const;
     SDL_Color getColor() const { return m_color; }
     const Keyframe& getLastKeyframeBeforeTime(Time time) const;
+    const double& getMass() { return m_mass; }
     int getID() const { return m_id; }
     //void draw(const Window& window);
     void newKeyframe(Keyframe keyframe);

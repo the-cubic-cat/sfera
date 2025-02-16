@@ -99,3 +99,34 @@ Rect operator+(const Rect& r, const Eigen::Vector2d& v)
 
 // stolen: https://stackoverflow.com/questions/54118163/most-efficient-way-to-determine-if-value-between-two-other-values-inclusive
 bool inRange(double p, double v1, double v2) { return (p < v1) != (p < v2); }
+
+Eigen::Vector2d flipVector2d(Eigen::Vector2d v, Axis axis)
+{
+    switch (axis)
+    {
+    case Axis::Y:
+        return {v.x(), -v.y()};
+        break;
+
+    case Axis::X:
+        return {-v.x(), v.y()};
+        break;
+    }
+    return v;
+}
+
+Eigen::Vector2d reflectVector2d(Eigen::Vector2d v, Eigen::Rotation2Dd angle)
+{
+    using Eigen::Vector2d;
+    using Eigen::Rotation2Dd;
+
+    Rotation2Dd negAngle{angle.inverse()};
+    Vector2d v_{negAngle * v};
+
+    Vector2d r_{flipVector2d(v_, Axis::Y)};
+
+    Vector2d r{angle * r_};
+
+    return r;
+    //return angle * flipVector2d((negAngle * v), Axis::Y);
+}

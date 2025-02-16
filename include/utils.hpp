@@ -3,6 +3,8 @@
 #include "base.hpp"
 #include <unordered_set>
 
+constexpr auto PI{M_PI};
+
 enum class Direction
 {
     none,
@@ -99,9 +101,17 @@ Rect operator*(const Rect& r, const double& d);
 
 Rect operator+(const Rect& r, const Eigen::Vector2d& v);
 
-
-
 bool inRange(double p, double v1, double v2);
+
+enum class Axis
+{
+    X,
+    Y
+};
+// multiplies the value of the selected axis by -1
+Eigen::Vector2d flipVector2d(Eigen::Vector2d v, Axis axis);
+// reflects the vector relative to angle
+Eigen::Vector2d reflectVector2d(Eigen::Vector2d v, Eigen::Rotation2Dd angle);
 
 template <typename T>
 std::vector<T> vectRemoveDuplicates(std::vector<T> v)

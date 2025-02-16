@@ -1,7 +1,6 @@
 #pragma once
 
 #include "system.hpp"
-#include <variant>
 
 /* collision object колобжок)))
 #define COLLOBJ std::variant<Direction, std::reference_wrapper<Ball>>
@@ -101,8 +100,13 @@ private:
     std::vector<BoundBallPair> getOutOfBoundsBalls(bool getTouching);
 
     BallPairVector getCollidingBalls(bool getTouching);
-    // rename and split up later
-    void collisionStuff();
+    // tries to find the exact time at which the first collision within the
+    // current timestep occurred
+    void findCollisionTime();
+    // makes balls bounce off walls
+    void handleBoundsCollisions();
+    // makes balls bounce off each other
+    void handleBallCollisions();
 
     // interval at which physics calculations will be performed
     Time m_timestep;
