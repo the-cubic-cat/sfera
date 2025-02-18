@@ -39,7 +39,8 @@ public:
     // get seconds double (imprecise)
     double getS() const { return static_cast<double>(m_timeNS) / billion; }
 
-    Time getHalf() { return makeNS(m_timeNS / 2); }
+    // will never be < 1
+    Time getHalf() { return makeNS(m_timeNS / 2 > 1 ? m_timeNS / 2 > 1 : 1); }
 
     static Time makeNS(int64_t nanoseconds)
     {

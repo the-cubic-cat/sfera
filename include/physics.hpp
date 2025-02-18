@@ -78,10 +78,11 @@ class Physiker
 public:
     // create new physiker
     Physiker(AppState& state, World& world, Time timestep = Time::makeMS(2)
-        , double collisionErrMargin = 0.00000001);
+        , double collisionErrMargin = 0.000001);
 
     void setTimestep(Time timestep) { m_timestep = timestep; }
     Time getTimestep() { return m_timestep; }
+    Time getSimulationTime() { return m_simulationTime; }
 
     // begins executing physics loop. it will run while m_state == simulation.
     void loop();

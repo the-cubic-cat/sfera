@@ -105,7 +105,7 @@ void Window::redraw()
     SDL_RenderClear(m_rendererSDL);
     //TODO: rework time to be non-shit
     Time time{};
-    time.setMS(static_cast<int64_t>(SDL_GetTicks64()));
+    time.setMS(2 * static_cast<int64_t>(SDL_GetTicks64()));
     for (const auto& b : m_world.getBalls())
     {
         drawCircle(b.getColor(), b.getPositionAtTime(time)

@@ -26,7 +26,7 @@ void Physiker::loop()
 {
     while (m_state == AppState::simulation)
     {
-        if (m_simulationTime.getS() > 500) { continue; }
+        if (m_simulationTime.getS() > 100) { continue; }
         m_simulationTime += m_timestep;
 
         findCollisionTime();
@@ -51,18 +51,18 @@ void Physiker::handleBoundsCollisions()
         {
             //keyframe.startPosition = {0, 0};
             //keyframe.velocity = {0, 0};
-            Debug::log("multiple balls colliding with bounds");
+            //Debug::log("multiple balls colliding with bounds");
         }
         switch (colpair.getDir())
         {
         case Direction::right:
         case Direction::left:
-            Debug::out("hit bottom or top, bouncing off");
+            //Debug::out("hit bottom or top, bouncing off");
             keyframe.velocity = {-ballVel.x(), ballVel.y()};
             break;
         case Direction::up:
         case Direction::down:
-            Debug::out("hit left or right, bouncing off");
+            //Debug::out("hit left or right, bouncing off");
             keyframe.velocity = {ballVel.x(), -ballVel.y()};
             break;
         default:
@@ -87,17 +87,15 @@ void Physiker::handleBallCollisions()
         Ball& ballA{colpair.getFirst()};
         Ball& ballB{colpair.getSecond()};
 
+        // coords flipped because in sdl2 positive y is down
+
         // ball centers unflipped
-        const Vector2d& Oauf
-            {ballA.getPositionAtTime(m_simulationTime)};
-        const Vector2d& Obuf
-            {ballB.getPositionAtTime(m_simulationTime)};
+        const Vector2d& Oauf {ballA.getPositionAtTime(m_simulationTime)};
+        const Vector2d& Obuf {ballB.getPositionAtTime(m_simulationTime)};
 
         // ball centers
-        const Vector2d Oa
-            {flipVector2d(Oauf, Axis::Y)};
-        const Vector2d Ob 
-            {flipVector2d(Obuf, Axis::Y)};
+        const Vector2d Oa {flipVector2d(Oauf, Axis::Y)};
+        const Vector2d Ob {flipVector2d(Obuf, Axis::Y)};
 
         // velocity vectors before collision (unflipped)
         const Vector2d& Vauf
@@ -110,31 +108,41 @@ void Physiker::handleBallCollisions()
         const Vector2d Vb{flipVector2d(Vbuf, Axis::Y)};
         
         // ball masses
-        //const double& Ma{ballA.getMass()};
-        //const double& Mb{ballB.getMass()};
+        const double& Ma{ballA.getMass()};
+        const double& Mb{ballB.getMass()};
 
         // direction from one ball center to another
         const Vector2d dir{Oa - Ob};
         //angle of the line joining the centers of both balls
         Rotation2Dd prpndclr{atan2(dir.y(), dir.x())};
-
         if (prpndclr.smallestAngle() > PI/2) { prpndclr.angle() -= PI; }
         if (prpndclr.smallestAngle() < -PI/2) { prpndclr.angle() += PI; }
 
-        Debug::out(std::to_string(prpndclr.smallestAngle() / PI) + "п");
-        // angle of the tangent to both balls at the point of collision
-        Rotation2Dd tang{PI/2 - abs(prpndclr.smallestAngle())};
-        if (prpndclr.smallestAngle() > 0) { tang = tang.inverse(); }
-        
-        // reflected unit vectors
-        const Vector2d Va2unit
-            {reflectVector2d(Va, tang).normalized()};
-        const Vector2d Vb2unit
-            {reflectVector2d(Vb, tang).normalized()};
+        // rotated velocity vectors before collision
+        const Vector2d rotVa{prpndclr.inverse() * Va};
+        const Vector2d rotVb{prpndclr.inverse() * Vb};
 
+        // rotatated velocity vectors after collision
+        const Vector2d rotVa2
+        {
+            ((Ma - Mb) * rotVa.x() + 2 * Mb * rotVb.x()) / (Ma + Mb)
+            , rotVa.y()
+        };
+        const Vector2d rotVb2
+        {
+            rotVa2.x() + rotVa.x() - rotVb.x()
+            , rotVb.y()
+        };
 
-        ballA.newKeyframe({Oauf, flipVector2d(Va2unit, Axis::Y) * Va.norm(), m_simulationTime});
-        ballB.newKeyframe({Obuf, flipVector2d(Vb2unit, Axis::Y) * Vb.norm(), m_simulationTime});
+        // velocity vectors after collision
+        const Vector2d Va2{prpndclr * rotVa2};
+        const Vector2d Vb2{prpndclr * rotVb2};
+
+        Debug::log("kinetic energy after collision: "
+            + std::to_string((Ma * pow(Va2.norm(), 2) + Mb * pow(Vb2.norm(), 2)) / 2));
+
+        ballA.newKeyframe({Oauf, flipVector2d(Va2, Axis::Y), m_simulationTime});
+        ballB.newKeyframe({Obuf, flipVector2d(Vb2, Axis::Y), m_simulationTime});
     }
 }
 
@@ -183,6 +191,7 @@ void Physiker::findCollisionTime()
             + std::to_string(m_maxCollisionIterations) 
             + " tries at physics time " + std::to_string(m_simulationTime.getS()) 
             + ". consider increasing collisionErrMargin.");
+            m_simulationTime += bsTimestep;
     }
 }
 

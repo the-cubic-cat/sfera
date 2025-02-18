@@ -3,7 +3,7 @@
 void Ball::newKeyframe(Keyframe keyframe)
 {
     m_keyframes.push_back(keyframe);
-    Debug::out("new keyframe");
+    //Debug::out("new keyframe");
 }
 
 bool operator== (const Ball& a, const Ball& b)
