@@ -1,8 +1,7 @@
 #pragma once
 
-#include "physics.hpp"
 #include "input.hpp"
-#include "window.hpp"
+
 #include <thread>
 
 namespace UnitTests

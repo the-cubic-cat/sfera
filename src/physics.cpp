@@ -13,10 +13,10 @@ bool operator!= (const BallPair& a, const BallPair& b)
 }
 
 Physiker::Physiker(AppState& state, World& world, Time timestep
-    , double collisionErrMargin)
+    , double collisionErrMargin, int maxCollisionIterations)
     : m_timestep{timestep}
     , collisionErrMargin{collisionErrMargin}
-    , m_maxCollisionIterations{100}
+    , m_maxCollisionIterations{maxCollisionIterations}
     , m_simulationTime{}
     , m_state{state}
     , m_world{world}
@@ -161,27 +161,27 @@ void Physiker::findCollisionTime()
     {
         bsTimestep = bsTimestep.getHalf();
         
-        if (!getOutOfBoundsBalls(false).empty() 
+        if (!getOutOfBoundsBalls(false).empty()
             || !getCollidingBalls(false).get().empty())
         {
-            //printf("collisions found, rewinding\n");
+            printf("collisions found, rewinding\n");
             m_simulationTime -= bsTimestep;
         }
         else if (getOutOfBoundsBalls(true).empty() 
             && getCollidingBalls(true).get().empty())
         {
-            //printf("no touches found, forwarding\n");
+            printf("no touches found, forwarding\n");
             m_simulationTime += bsTimestep;
         }
         else if (getOutOfBoundsBalls(true).size() 
             + getCollidingBalls(true).get().size() > 1)
         {
-            //printf("over one touches found, rewinding\n");
+            printf("over one touches found, rewinding\n");
             m_simulationTime -= bsTimestep;
         }
         else
         {
-            //printf("all good, breaking after %d iterations\n", i);
+            printf("all good, breaking after %d iterations\n", i);
             break;
         }
     }
@@ -191,8 +191,10 @@ void Physiker::findCollisionTime()
             + std::to_string(m_maxCollisionIterations) 
             + " tries at physics time " + std::to_string(m_simulationTime.getS()) 
             + ". consider increasing collisionErrMargin.");
-            m_simulationTime += bsTimestep;
+        m_simulationTime += bsTimestep;
+        return;
     }
+    Debug::log("collision time search succeeded");
 }
 
 BallPairVector Physiker::getCollidingBalls(bool getTouching)

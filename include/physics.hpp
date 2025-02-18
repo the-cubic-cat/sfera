@@ -78,7 +78,7 @@ class Physiker
 public:
     // create new physiker
     Physiker(AppState& state, World& world, Time timestep = Time::makeMS(2)
-        , double collisionErrMargin = 0.000001);
+        , double collisionErrMargin = 0.000001, int maxCollisionIterations = 100);
 
     void setTimestep(Time timestep) { m_timestep = timestep; }
     Time getTimestep() { return m_timestep; }
@@ -118,6 +118,13 @@ private:
     int m_maxCollisionIterations;
     // time currently being evalated in simulation
     Time m_simulationTime;
+
+    enum struct SearchAction
+    {
+        None,
+        Forward,
+        Rewind
+    };
 
     const AppState& m_state;
     World& m_world;

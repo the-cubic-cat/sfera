@@ -8,16 +8,10 @@ int main()
     AppState state = AppState::simulation;
 
     World world{};
-    world.newBall(1.5, {3, 0}, 3, {-1, 1}, {255, 0, 0, 255});
-    world.newBall(1, {3, 3}, 1, {-1, -1}, {0, 255, 0, 255});
-    //world.newBall(1, {0, 0}, 1, {1, 1}, {0, 255, 0, 255});
-    //world.newBall(1, {0, 3}, 1, {1, -1}, {0, 255, 0, 255});
-
-    //world.newBall(1, {3, 0}, 1, {-1, 0}, {255, 0, 0, 255});
-    //world.newBall(1, {-3, 0.3}, 1, {1, 0}, {0, 255, 0, 255});
-
-    //world.newBall(1, {3, 0}, 1, {-1, 0}, {255, 0, 0, 255});
-    //world.newBall(1, {-3, -0.3}, 1, {1, 0}, {0, 255, 0, 255});
+    world.newBall(1, {0, 0}, 20, {-1, -1}, {255, 0, 0, 255});
+    world.newBall(1, {3, 0}, 1, {0, 0}, {0, 255, 0, 255});
+    world.newBall(1.5, {0, 3}, 20, {1, -1}, {255, 0, 0, 255});
+    world.newBall(1, {3, 3}, 1, {10, 1}, {0, 255, 0, 255});
 
     world.setWorldBounds({-5, -5, 10, 10});
 
