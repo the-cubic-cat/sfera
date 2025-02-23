@@ -1,0 +1,48 @@
+        currentAction = SearchAction::None;
+        
+        if (!getOutOfBoundsBalls(false).empty() 
+            || !getCollidingBalls(false).get().empty())
+        {
+            printf("collisions found, rewinding\n");
+            currentAction = SearchAction::Rewind;
+        }
+        else if (getOutOfBoundsBalls(true).empty() 
+            && getCollidingBalls(true).get().empty())
+        {
+            printf("no touches found, forwarding\n");
+            currentAction = SearchAction::Forward;
+        }
+        else if (getOutOfBoundsBalls(true).size() 
+            + getCollidingBalls(true).get().size() > 1)
+        {
+            printf("over one touches found, rewinding\n");
+            currentAction = SearchAction::Rewind;
+        }
+        else
+        {
+            printf("all good, breaking after %d iterations\n", i);
+            break;
+        }
+
+        if (currentAction != lastAction)
+        {
+            bsTimestep = bsTimestep.getHalf();
+            printf("current action != last action\n");
+        }
+
+        switch (currentAction)
+        {
+        case SearchAction::Forward:
+            m_simulationTime += bsTimestep;
+            break;
+        case SearchAction::Rewind:
+            m_simulationTime -= bsTimestep;
+            break;
+        default:
+            break;
+        }
+
+        Debug::log("time: " + std::to_string(m_simulationTime.getNS()));
+        Debug::log(std::to_string(bsTimestep.getNS()));
+
+        lastAction = currentAction;

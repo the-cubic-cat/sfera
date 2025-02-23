@@ -1,6 +1,6 @@
 #pragma once
 
-#include "system.hpp"
+#include "world.hpp"
 
 /* collision object колобжок)))
 #define COLLOBJ std::variant<Direction, std::reference_wrapper<Ball>>
@@ -78,11 +78,13 @@ class Physiker
 public:
     // create new physiker
     Physiker(AppState& state, World& world, Time timestep = Time::makeMS(2)
-        , double collisionErrMargin = 0.000001, int maxCollisionIterations = 100);
+        , double collisionErrMargin = 0.0000000001, int maxCollisionIterations = 100);
 
     void setTimestep(Time timestep) { m_timestep = timestep; }
     Time getTimestep() { return m_timestep; }
     Time getSimulationTime() { return m_simulationTime; }
+    // deletes and recalculates all keyframes after given time
+    void purgeFuture(Time since);
 
     // begins executing physics loop. it will run while m_state == simulation.
     void loop();

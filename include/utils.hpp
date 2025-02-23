@@ -35,12 +35,12 @@ public:
     int64_t getMS() const { return m_timeNS / million; }
     
     // set seconds with double (imprecise)
-    void setS(double seconds) { setMS(static_cast<int64_t>(seconds * million)); }
+    void setS(double seconds) { m_timeNS = static_cast<int64_t>(seconds * billion); }
     // get seconds double (imprecise)
     double getS() const { return static_cast<double>(m_timeNS) / billion; }
 
     // will never be < 1
-    Time getHalf() { return makeNS(m_timeNS / 2 > 1 ? m_timeNS / 2 > 1 : 1); }
+    Time getHalf() { return makeNS(m_timeNS / 2 > 1 ? m_timeNS / 2 : 1); }
 
     static Time makeNS(int64_t nanoseconds)
     {
@@ -113,6 +113,11 @@ enum class Axis
 Eigen::Vector2d flipVector2d(Eigen::Vector2d v, Axis axis);
 // reflects the vector relative to angle
 Eigen::Vector2d reflectVector2d(Eigen::Vector2d v, Eigen::Rotation2Dd angle);
+
+// removes given suffix from string, returns true if operation succeeded
+bool unsuffix(std::string& suffixedString, std::string suffix);
+// removes given prefix from string, returns true if operation succeeded
+bool unprefix(std::string& prefixedString, std::string prefix);
 
 template <typename T>
 std::vector<T> vectRemoveDuplicates(std::vector<T> v)

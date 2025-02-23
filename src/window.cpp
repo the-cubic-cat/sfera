@@ -1,5 +1,8 @@
 #include "window.hpp"
 
+class InputHandler{ public: static void parseInput(std::string inputCommand); };
+using Eigen::Vector2d;
+
 Window::Window(AppState& state, const World& world)
     : m_rendererSDL{}
     , m_windowSDL{}
@@ -7,6 +10,9 @@ Window::Window(AppState& state, const World& world)
     , m_UIfontSDL{}
     , m_displayScale{100}
     , m_displayPositionOffset{540, 540}
+    , m_timescale{1}
+    , m_time{}
+    , m_clock{}
     , m_state{state}
     , m_world{world}
 {
@@ -95,6 +101,19 @@ void Window::loop()
 {
     while (m_state == AppState::simulation)
     {
+        Inputer::beginInput();
+        if (Inputer::hasInput())
+        {
+            InputHandler::parseInput(Inputer::getInput());
+        }
+        // placeholder
+        SDL_Event eventSDL;
+        while (SDL_PollEvent(&eventSDL) != 0)
+        {
+            // this is just here so that os doesn't complain about
+            // program not responding
+        }
+
         redraw();
     }
 }
@@ -103,13 +122,34 @@ void Window::redraw()
 {
     SDL_SetRenderDrawColor(m_rendererSDL, 0, 0, 0, 255);
     SDL_RenderClear(m_rendererSDL);
-    //TODO: rework time to be non-shit
-    Time time{};
-    time.setMS(static_cast<int64_t>(SDL_GetTicks64()));
+
+    m_clock.tick();    
+    m_time += Time::makeS(static_cast<double>(m_clock.delta) / 1000 * m_timescale);
+    //m_time = Time::makeMS(SDL_GetTicks64());
+
+    //std::cout << m_time.getS() << "\n";
+
+    try
+    {
     for (const auto& b : m_world.getBalls())
     {
-        drawCircle(b.getColor(), b.getPositionAtTime(time)
+        drawCircle(b.getColor(), b.getPositionAtTime(m_time)
             , b.getRadius(), true);
+    }
+    }
+    catch (WorldException ex)
+    {
+        switch (ex)
+        {
+        case WorldException::TimeInaccessible:
+            Debug::err("Time is inaccessible: " + std::to_string(m_time.getS())
+                + ". Setting time to 0 and pausing.");
+            m_timescale = 0;
+            m_time = Time::makeNS(1);
+            break;
+        default:
+            break;
+        }
     }
     
     drawRect({0, 0, 255, 255}

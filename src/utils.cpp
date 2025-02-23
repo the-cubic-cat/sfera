@@ -130,3 +130,26 @@ Eigen::Vector2d reflectVector2d(Eigen::Vector2d v, Eigen::Rotation2Dd angle)
     return r;
     //return angle * flipVector2d((negAngle * v), Axis::Y);
 }
+
+bool unsuffix(std::string& suffixedString, std::string suffix)
+{
+    std::size_t sufLen{suffix.size()};
+    std::size_t strLen{suffixedString.size()};
+
+    if (strLen <= sufLen || !suffixedString.ends_with(suffix)) { return false; }
+
+    suffixedString = suffixedString.substr(0, strLen - sufLen);
+    return true;
+}
+
+bool unprefix(std::string& prefixedString, std::string prefix)
+{
+    std::size_t preLen{prefix.size()};
+    std::size_t strLen{prefixedString.size()};
+
+    if (strLen <= preLen || prefixedString.rfind(prefix, 0) != 0) { return false; }
+
+    prefixedString.erase(prefixedString.begin(), prefixedString.begin()
+        + static_cast<int>(preLen));
+    return true;
+}

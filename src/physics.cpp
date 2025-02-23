@@ -22,6 +22,14 @@ Physiker::Physiker(AppState& state, World& world, Time timestep
     , m_world{world}
 {}
 
+void Physiker::purgeFuture(Time since)
+{
+    for (auto& b : m_world.getBallsModifiable())
+    {
+    
+    }
+}
+
 void Physiker::loop()
 {
     while (m_state == AppState::simulation)
@@ -56,14 +64,16 @@ void Physiker::handleBoundsCollisions()
         switch (colpair.getDir())
         {
         case Direction::right:
+            keyframe.velocity = {-abs(ballVel.x()), ballVel.y()};
+            break;
         case Direction::left:
-            //Debug::out("hit bottom or top, bouncing off");
-            keyframe.velocity = {-ballVel.x(), ballVel.y()};
+            keyframe.velocity = {abs(ballVel.x()), ballVel.y()};
             break;
         case Direction::up:
+            keyframe.velocity = {ballVel.x(), abs(ballVel.y())};
+            break;
         case Direction::down:
-            //Debug::out("hit left or right, bouncing off");
-            keyframe.velocity = {ballVel.x(), -ballVel.y()};
+            keyframe.velocity = {ballVel.x(), -abs(ballVel.y())};
             break;
         default:
             Debug::err("something has gone terribly wrong in the code for"
@@ -156,45 +166,60 @@ void Physiker::findCollisionTime()
     // bs stands for "binary search"
     Time bsTimestep{m_timestep};
 
+    // simulation time at the beginning of search
+    Time startSimTime{m_simulationTime};
+
+    SearchAction currentAction{};
+    SearchAction lastAction{};
+
     int i{0};
     for (i = 0; i < m_maxCollisionIterations; i++)
     {
-        bsTimestep = bsTimestep.getHalf();
+        currentAction = SearchAction::None;
         
-        if (!getOutOfBoundsBalls(false).empty()
+        if (!getOutOfBoundsBalls(false).empty() 
             || !getCollidingBalls(false).get().empty())
         {
-            printf("collisions found, rewinding\n");
-            m_simulationTime -= bsTimestep;
-        }
-        else if (getOutOfBoundsBalls(true).empty() 
-            && getCollidingBalls(true).get().empty())
-        {
-            printf("no touches found, forwarding\n");
-            m_simulationTime += bsTimestep;
-        }
-        else if (getOutOfBoundsBalls(true).size() 
-            + getCollidingBalls(true).get().size() > 1)
-        {
-            printf("over one touches found, rewinding\n");
-            m_simulationTime -= bsTimestep;
+            Debug::log("rewinding\n");
+            currentAction = SearchAction::Rewind;
         }
         else
         {
-            printf("all good, breaking after %d iterations\n", i);
+            Debug::log("forwarding\n");
+            currentAction = SearchAction::Forward;
+        }
+
+        if (currentAction != lastAction)
+        {
+            bsTimestep = bsTimestep.getHalf();
+            Debug::log("current action != last action\n");
+        }
+
+        switch (currentAction)
+        {
+        case SearchAction::Forward:
+            m_simulationTime += bsTimestep;
+            break;
+        case SearchAction::Rewind:
+            m_simulationTime -= bsTimestep;
+            break;
+        default:
             break;
         }
+
+        Debug::log("time: " + std::to_string(m_simulationTime.getNS()));
+        Debug::log(std::to_string(bsTimestep.getNS()));
+
+        // makes sure that time actually moves forward
+        if (bsTimestep.getNS() == 1 
+            || m_simulationTime < startSimTime - m_timestep.getHalf())
+        {
+            m_simulationTime += bsTimestep;
+            break;
+        }
+
+        lastAction = currentAction;
     }
-    if (i == m_maxCollisionIterations)
-    {
-        Debug::err("collision time search failed after " 
-            + std::to_string(m_maxCollisionIterations) 
-            + " tries at physics time " + std::to_string(m_simulationTime.getS()) 
-            + ". consider increasing collisionErrMargin.");
-        m_simulationTime += bsTimestep;
-        return;
-    }
-    Debug::log("collision time search succeeded");
 }
 
 BallPairVector Physiker::getCollidingBalls(bool getTouching)

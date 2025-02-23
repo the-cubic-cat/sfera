@@ -12,7 +12,7 @@ void print(std::ostream& stream, string_view message)
 
 void Debug::log(string_view message)
 {
-    print(clog, message);
+    //print(clog, message);
 }
 void Debug::out(string_view message)
 {

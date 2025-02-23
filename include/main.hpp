@@ -1,6 +1,6 @@
 #pragma once
 
-#include "input.hpp"
+#include "input_handler.hpp"
 
 #include <thread>
 

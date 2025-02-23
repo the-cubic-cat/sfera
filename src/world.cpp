@@ -1,9 +1,10 @@
 #include "world.hpp"
 
+using Eigen::Vector2d;
+
 void Ball::newKeyframe(Keyframe keyframe)
 {
     m_keyframes.push_back(keyframe);
-    //Debug::out("new keyframe");
 }
 
 bool operator== (const Ball& a, const Ball& b)
@@ -28,43 +29,38 @@ const Keyframe& Ball::getLastKeyframeBeforeTime(Time time) const
     // the specified time
     for (auto& k : std::views::reverse(m_keyframes))
     {
-        if (k.keyframeTime < time)
+        if (k.keyframeTime <= time)
         {
             return k;
         }
     }
 
-    Debug::err("time is inaccessible: " + std::to_string(time.getS()));
-    return m_keyframes[0];
+    throw WorldException::TimeInaccessible;
 }
 
 void World::newBall(double radius, Vector2d position, double mass
     , Vector2d velocity, SDL_Color color, Time time)
 {
+    if (m_bounds)
+    {
+        Rect collisionBounds { m_bounds.value().growBy(-radius)};
+        if (!collisionBounds.contains(position))
+        {
+            throw WorldException::InvalidBallPosition;
+        }
+    }
+    for (auto& b : m_balls)
+    {
+        Vector2d bPos{b.getPositionAtTime(time)};
+
+        double distanceSquare{((bPos - position).squaredNorm())};
+        double collisionDistance{b.getRadius() + radius};
+        double collisionDistanceSquare{collisionDistance * collisionDistance};
+
+        if (distanceSquare <= collisionDistanceSquare)
+        {
+            throw WorldException::InvalidBallPosition;
+        }
+    }
     m_balls.push_back(Ball{radius, position, mass, velocity, color, time});
 }
-
-void World::setWorldBounds(const Rect& bounds)
-{
-    m_bounds = bounds;
-}
-
-const std::optional<Rect>& World::getWorldBounds() const
-{
-    return m_bounds;
-}
-
-const std::vector<Ball>& World::getBalls() const
-{
-    return m_balls;
-}
-
-std::vector<Ball>& World::getBallsModifiable()
-{
-    return m_balls;
-}
-
-World::World()
-    : m_balls{}
-    , m_bounds{}
-{}
