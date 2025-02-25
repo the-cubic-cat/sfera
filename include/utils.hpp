@@ -2,6 +2,7 @@
 
 #include "base.hpp"
 #include <unordered_set>
+#include <queue>
 
 constexpr auto PI{M_PI};
 
@@ -118,6 +119,8 @@ Eigen::Vector2d reflectVector2d(Eigen::Vector2d v, Eigen::Rotation2Dd angle);
 bool unsuffix(std::string& suffixedString, std::string suffix);
 // removes given prefix from string, returns true if operation succeeded
 bool unprefix(std::string& prefixedString, std::string prefix);
+
+std::deque<std::string> splitString(std::string str, char separator);
 
 template <typename T>
 std::vector<T> vectRemoveDuplicates(std::vector<T> v)

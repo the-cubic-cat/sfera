@@ -153,3 +153,18 @@ bool unprefix(std::string& prefixedString, std::string prefix)
         + static_cast<int>(preLen));
     return true;
 }
+
+std::deque<std::string> splitString(std::string str, char separator)
+{
+    std::deque<std::string> r{};
+
+    std::stringstream words(str);
+    std::string tempWord;
+
+    while (getline(words, tempWord, separator))
+    {
+        r.push_back(tempWord);
+    }
+
+    return r;
+}

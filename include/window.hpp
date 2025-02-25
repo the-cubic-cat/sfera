@@ -21,7 +21,7 @@ class Window
 {
 public:
     // create a new window
-    Window(AppState& state, const World& world);
+    Window(const AppState& state, const World& world, Time& currentTime);
     // destroy the window
     virtual ~Window();
 
@@ -34,9 +34,32 @@ public:
     void loop();
 
     void setTime(Time newTime) { m_time = newTime; }
-    Time getTime() { return m_time; }
+    Time getTime() const { return m_time; }
+
     void setTimescale(double newScale) { m_timescale = newScale; }
-    double getTimescale() { return m_timescale; }
+    double getTimescale() const { return m_timescale; }
+
+    void setZoom(double zoom) { m_displayScale = zoom * 100; }
+    double getZoom() const { return m_displayScale / 100; }
+
+    void setViewOffset(Eigen::Vector2d offset)
+    {
+        int w{};
+        int h{};
+        SDL_GetWindowSize(m_windowSDL, &w, &h);
+        m_displayPositionOffset = offset * m_displayScale 
+            + Eigen::Vector2d{static_cast<double>(w) / 2
+            , static_cast<double>(h) / 2};
+    }
+    Eigen::Vector2d getViewOffset() const
+    {
+        int w{};
+        int h{};
+        SDL_GetWindowSize(m_windowSDL, &w, &h);
+        
+        return (m_displayPositionOffset - Eigen::Vector2d{static_cast<double>(w) 
+            / 2, static_cast<double>(h) / 2}) / m_displayScale ;
+    }
 
     // it doesn't make sense for windows to be copied or moved
     Window(const Window& window) = delete;
@@ -69,7 +92,7 @@ private:
 
     TTF_Font *m_UIfontSDL;
 
-    float m_displayScale;
+    double m_displayScale;
     Eigen::Vector2d m_displayPositionOffset;
     double m_timescale;
     Time m_time;
@@ -77,4 +100,5 @@ private:
 
     const AppState& m_state;
     const World& m_world;
+    Time& m_currentTime;
 };

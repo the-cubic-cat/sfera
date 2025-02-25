@@ -76,15 +76,28 @@ private:
 class Physiker
 {
 public:
+    // used for preliminary collision calculations
+    static constexpr double collisionErrorMarginHeuristic{0.1};
+    
     // create new physiker
-    Physiker(AppState& state, World& world, Time timestep = Time::makeMS(2)
-        , double collisionErrMargin = 0.0000000001, int maxCollisionIterations = 100);
+    Physiker(AppState& state, World& world, const Time& currentTime
+        , Time timestep = Time::makeMS(2)
+        , double collisionErrMargin = 0.0000000001
+        , int maxCollisionIterations = 100);
 
     void setTimestep(Time timestep) { m_timestep = timestep; }
     Time getTimestep() { return m_timestep; }
     Time getSimulationTime() { return m_simulationTime; }
-    // deletes and recalculates all keyframes after given time
-    void purgeFuture(Time since);
+
+    void setRunaheadTime(Time time) { m_runahead = time; }
+    Time getRunaheadTime() { return m_runahead; }
+
+    void setMaxCollisionIterations(int iterations) 
+        { m_maxCollisionIterations = iterations; }
+    int getMaxCollisionIterations() { return m_maxCollisionIterations; }
+    // deletes all keyframes, creates new keyframes with state of balls at 
+    // purgeTime, resets simulation time to 0 
+    void purgeKeyframes(Time purgeTime);
 
     // begins executing physics loop. it will run while m_state == simulation.
     void loop();
@@ -115,11 +128,13 @@ private:
     Time m_timestep;
     // fraction of ball radius that will be used as maximum distance to consider
     // the ball touching
-    double collisionErrMargin;
+    double m_collisionErrMargin;
     // maximum number of iterations while searching for collision time
     int m_maxCollisionIterations;
     // time currently being evalated in simulation
     Time m_simulationTime;
+    // how far ahead of the graphics time physics time is allowed to run
+    Time m_runahead;
 
     enum struct SearchAction
     {
@@ -130,4 +145,5 @@ private:
 
     const AppState& m_state;
     World& m_world;
+    const Time& m_currentTime;
 };

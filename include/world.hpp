@@ -13,14 +13,23 @@ struct SDL_Color;
 class Keyframe
 {
 public:
-    Eigen::Vector2d startPosition; // in meters
-    Eigen::Vector2d velocity; // in meters/s
-    Time keyframeTime;
+    Eigen::Vector2d startPosition{0, 0}; // in meters
+    Eigen::Vector2d velocity{0, 0}; // in meters/s
+    Time keyframeTime{};
 };
 
 class Ball
 {
 public:
+    std::deque<std::string> tags;
+
+    // get tags as one semicolon-separated string
+    std::string getTagsAsString() const;
+    // get tags from one semicolon-separated string
+    static std::deque<std::string> getTagsFromString(std::string str);
+
+    bool hasTag(std::string tag) const;
+
     double getRadius() const { return m_radius; }
     const Eigen::Vector2d getPositionAtTime(Time time) const;
     SDL_Color getColor() const { return m_color; }
@@ -28,7 +37,12 @@ public:
     const double& getMass() const { return m_mass; }
     int getID() const { return m_id; }
     //void draw(const Window& window);
+
+    // creates new keyframe
     void newKeyframe(Keyframe keyframe);
+    // deletes all keyframes and replaces them with the one given
+    // USE CAREFULLY, CAN BREAK THINGS
+    void purgeKeyframes(Keyframe replacement);
 
 private:
 
@@ -41,15 +55,15 @@ private:
     int m_id; // used to compare balls
 
     Ball(double radius, Eigen::Vector2d position, double mass, Eigen::Vector2d velocity
-        , SDL_Color color = {255, 255, 255, 255}, Time time = {})
-        : m_radius{radius}
+        , SDL_Color color = {255, 255, 255, 255}, Time time = {}
+        , std::deque<std::string> tags = {})
+        : tags{tags}
+        , m_radius{radius}
         , m_mass{mass}
         , m_color{color}
-        , m_keyframes{}
+        , m_keyframes{{position, velocity, time}}
         , m_id{newBallID()}
-    {
-        newKeyframe({position, velocity, time});
-    }
+    {}
 
     int newBallID()
     {
@@ -66,10 +80,12 @@ class World
 {
 public:
     // creates a new ball, adds it to the ball list
-    void newBall(double radius, Eigen::Vector2d position, double mass = 1
+    Ball& newBall(double radius, Eigen::Vector2d position, double mass = 1
         , Eigen::Vector2d velocity = {0, 0}, SDL_Color color = {255, 255, 255, 255}
         , Time time = {});
 
+    // set the world bounds
+    void setWorldBounds(const std::optional<Rect>& bounds) { m_bounds = bounds; }
     // set the world bounds
     void setWorldBounds(const Rect& bounds) { m_bounds = bounds; }
 
@@ -81,6 +97,10 @@ public:
 
     // get a modifiable (non-const) reference to the ball list
     std::vector<Ball>& getBallsModifiable() { return m_balls; };
+    // get a non-const reference to a ball with the given ID
+    Ball& getBallByID(int ID);
+    // get all balls with specified tag
+    std::vector<std::reference_wrapper<Ball>> getBallsWithTag(std::string tag);
 
     World() : m_balls{}, m_bounds{} {}
     ~World() = default;
@@ -100,5 +120,7 @@ private:
 enum class WorldException
 {
     TimeInaccessible,
-    InvalidBallPosition
+    InvalidBallPosition,
+    BallNotFound,
+    KeyframeListEmpty
 };

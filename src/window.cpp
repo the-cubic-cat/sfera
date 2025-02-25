@@ -3,7 +3,7 @@
 class InputHandler{ public: static void parseInput(std::string inputCommand); };
 using Eigen::Vector2d;
 
-Window::Window(AppState& state, const World& world)
+Window::Window(const AppState& state, const World& world, Time& currentTime)
     : m_rendererSDL{}
     , m_windowSDL{}
     , m_surfaceSDL{}
@@ -15,6 +15,7 @@ Window::Window(AppState& state, const World& world)
     , m_clock{}
     , m_state{state}
     , m_world{world}
+    , m_currentTime{currentTime}
 {
     Debug::log("Creating window...");
     // basic setup
@@ -113,7 +114,7 @@ void Window::loop()
             // this is just here so that os doesn't complain about
             // program not responding
         }
-
+        m_currentTime = m_time;
         redraw();
     }
 }
@@ -145,7 +146,7 @@ void Window::redraw()
             Debug::err("Time is inaccessible: " + std::to_string(m_time.getS())
                 + ". Setting time to 0 and pausing.");
             m_timescale = 0;
-            m_time = Time::makeNS(1);
+            m_time = {};
             break;
         default:
             break;

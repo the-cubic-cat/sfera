@@ -4,7 +4,7 @@ using std::string;
 using std::queue;
 
 bool InputHandler::m_initalized{false};
-string InputHandler::helpText
+string InputHandler::m_helpText
 {
     "Your command was not found. Available commands are:\n"
     "graphics\n"
@@ -13,12 +13,15 @@ string InputHandler::helpText
 std::optional<std::reference_wrapper<World>>    InputHandler::m_world{};
 std::optional<std::reference_wrapper<Window>>   InputHandler::m_window{};
 std::optional<std::reference_wrapper<Physiker>> InputHandler::m_phys{};
+std::optional<std::reference_wrapper<AppState>> InputHandler::m_state{};
 
-void InputHandler::init(World& world, Window& window, Physiker& physiker)
+void InputHandler::init(World& world, Window& window, Physiker& physiker
+    , AppState& state)
 {
     m_world = world;
     m_window = window;
     m_phys = physiker;
+    m_state = state;
 
     m_initalized = true;
 }
@@ -34,8 +37,12 @@ void InputHandler::parseInput(string inputCommand)
     try
     {
     string front{dequeue(command)};
-    if      (front == "graphics") { graphics::parse(command); }
-    else if (front == "world"   ) { world::parse(command);    }
+    if      (front == "time"    || front == "t") { time   ::parse(command);}
+    else if (front == "balls"   || front == "b") { balls  ::parse(command);}
+    else if (front == "view"    || front == "v") { view   ::parse(command);}
+    else if (front == "bounds"  || front =="bd") { bounds ::parse(command);}
+    else if (front == "physics" || front == "p") { physics::parse(command);} 
+    else if (front == "quit"    || front == "q") { STATE = AppState::quit; } 
     else { Debug::err("Invalid command"); }
     }
     catch (CommandException ex)
@@ -44,44 +51,51 @@ void InputHandler::parseInput(string inputCommand)
     }
 }
 
-queue<string> InputHandler::splitString(string str, char separator)
+double InputHandler::makeDouble(string str, double min, double max)
 {
-    queue<string> r{};
+    double r{};
+    try   { r = std::stod(str); }
+    catch (std::invalid_argument const&) 
+        { throw CommandException::NumberExpected; }
+    
+    if (min <= r && r <= max) { return r; }
 
-    std::stringstream words(str);
-    string tempWord;
-
-    while (getline(words, tempWord, separator))
-    {
-        r.push(tempWord);
-    }
-
-    return r;
+    throw CommandException::WrongParameter;
 }
-
-Time InputHandler::makeTime(string timeString)
+int InputHandler::makeInt(string str, int min, int max)
 {
+    int r{};
+    try   { r = std::stoi(str); }
+    catch (std::invalid_argument const&) 
+        { throw CommandException::NumberExpected; }
+    
+    if (min <= r && r <= max) { return r; }
+
+    throw CommandException::WrongParameter;
+}
+Time InputHandler::makeTime(string timeString, bool allowNegatives)
+{
+    int minint{0};
+    double mindouble{0};
+    if (allowNegatives)
+    {
+        minint = std::numeric_limits<int>::lowest();
+        mindouble = std::numeric_limits<double>::lowest();
+    }
     Time newTime{};
 
-    try
-    {
     if(unsuffix(timeString, "ns"))
     {
-        newTime = Time::makeNS(std::stoi(timeString));
+        newTime = Time::makeNS(makeInt(timeString, minint));
     }
     else if (unsuffix(timeString, "ms"))
     {
-        newTime = Time::makeMS(std::stoi(timeString));
+        newTime = Time::makeMS(makeInt(timeString, minint));
     }
     else
     {
         unsuffix(timeString, "s");
-        newTime = Time::makeS(std::stod(timeString));
-    }
-    }
-    catch (std::invalid_argument const&)
-    {
-        throw CommandException::NumberExpected;
+        newTime = Time::makeS(makeDouble(timeString, mindouble));
     }
 
     return newTime;
@@ -91,8 +105,8 @@ Eigen::Vector2d InputHandler::makeVector(std::string vectorString)
     queue<string> coords{splitString(vectorString, ';')};
     if (coords.size() != 2) { throw CommandException::WrongParameter; }
 
-    double x{std::stod(dequeue(coords))};
-    double y{std::stod(dequeue(coords))};
+    double x{makeDouble(dequeue(coords))};
+    double y{makeDouble(dequeue(coords))};
 
     return {x, y};
 }
@@ -102,122 +116,115 @@ SDL_Color InputHandler::makeColor(std::string colorString)
     if (3 > values.size() || values.size() > 4) 
         { throw CommandException::WrongParameter; }
 
-    int r{std::stoi(dequeue(values))};
-    int g{std::stoi(dequeue(values))};
-    int b{std::stoi(dequeue(values))};
-    int a{255};
-    if (!values.empty()) { a = std::stoi(dequeue(values)); }
+    int r{makeInt(dequeue(values), 0, 255)};
+    int g{makeInt(dequeue(values), 0, 255)};
+    int b{makeInt(dequeue(values), 0, 255)};
 
-    if (0 > r || r > 255
-     || 0 > g || g > 255
-     || 0 > b || b > 255
-     || 0 > a || a > 255)
-    {
-        throw CommandException::WrongParameter;
-    }
+    int a{255};
+    if (!values.empty()) { a = makeInt(dequeue(values), 0, 255); }
 
     return {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b)
         , static_cast<Uint8>(a)};
 }
 
-void InputHandler::graphics::parse(queue<string> command)
+void InputHandler::outTime(Time time, queue<string> command)
 {
-    string front{dequeue(command)};
-
-    if (front == "time") { time::parse(command); }
-    else { throw CommandException::WrongArgument; }
-}
-
-void InputHandler::graphics::time::parse(queue<string> command)
-{
-    string front{dequeue(command)};
-
-    if      (front == "set"   ) { set          (command); }
-    else if (front == "move"  ) { move         (command); }
-    else if (front == "get"   ) { get          (command); }
-    else if (front == "scale" ) { scale::parse (command); }
-    else { throw CommandException::WrongArgument; }
-}
-void InputHandler::graphics::time::set(queue<string> command)
-{
-    string t{command.front()};
-
-    WINDOW.setTime(makeTime(t));
-}
-void InputHandler::graphics::time::move(queue<string> command)
-{
-    string t{command.front()};
-
-    WINDOW.setTime(WINDOW.getTime() + makeTime(t));
-}
-void InputHandler::graphics::time::get(queue<string> command)
-{
-    string unit{}; 
-    if (!command.empty())
+    string unit{};
+    if(!command.empty())
     {
         unit = dequeue(command);
     }
 
     if (unit == "ns")
     {
-        Debug::out(std::to_string(WINDOW.getTime().getNS()) + " nanoseconds");
+        Debug::out(std::to_string(time.getNS()) + " nanoseconds");
     }
     else if (unit == "ms")
     {
-        Debug::out(std::to_string(WINDOW.getTime().getMS()) + " milliseconds");
+        Debug::out(std::to_string(time.getMS()) + " milliseconds");
     }
     else
     {
-        Debug::out(std::to_string(WINDOW.getTime().getS()) + " seconds");
+        Debug::out(std::to_string(time.getS()) + " seconds");
     }
 }
 
-void InputHandler::graphics::time::scale::parse(queue<string> command)
+void InputHandler::time::parse(queue<string> command)
 {
     string front{dequeue(command)};
 
-    if      (front == "set") { set(command); }
-    else if (front == "get") { get();        }
+    if      (front == "set"   || front == "s") { set         (command); }
+    else if (front == "move"  || front == "m") { move        (command); }
+    else if (front == "get"   || front == "g") { get         (command); }
+    else if (front == "scale" || front =="sc") { scale::parse(command); }
     else { throw CommandException::WrongArgument; }
 }
-void InputHandler::graphics::time::scale::set(queue<string> command)
+
+void InputHandler::time::set(queue<string> command)
+{
+    WINDOW.setTime(makeTime(dequeue(command)));
+}
+void InputHandler::time::move(queue<string> command)
+{
+    string t{command.front()};
+
+    WINDOW.setTime(WINDOW.getTime() + makeTime(t, true));
+}
+void InputHandler::time::get(queue<string> command)
+{
+    outTime(WINDOW.getTime(), command);
+}
+
+void InputHandler::time::scale::parse(queue<string> command)
 {
     string front{dequeue(command)};
 
-    try
-    {
-        WINDOW.setTimescale(std::stod(front));
-    }
-    catch (std::invalid_argument const&)
-    {
-        throw CommandException::NumberExpected;
-    }
+    if      (front == "set" || front == "s") { set(command); }
+    else if (front == "get" || front == "g") { get();        }
+    else { throw CommandException::WrongArgument; }
 }
-void InputHandler::graphics::time::scale::get()
+void InputHandler::time::scale::set(queue<string> command)
+{
+    WINDOW.setTimescale(makeDouble(dequeue(command)));
+}
+void InputHandler::time::scale::get()
 {
     Debug::out(std::to_string(WINDOW.getTimescale()));
 }
 
-void InputHandler::world::parse(queue<string> command)
+void InputHandler::balls::parse(queue<string> command)
 {
+    // doing this will hopefully prevent horrible multithreading bugs
+    double oldTimescale{WINDOW.getTimescale()};
+    WINDOW.setTimescale(0);
+    Time oldRunahead{PHYS.getRunaheadTime()};
+    PHYS.setRunaheadTime({});
+
     string front{dequeue(command)};
 
-    if (front == "balls") { balls::parse(command); }
+    if      (front == "get"    || front == "g") { get(command);        }
+    else if (front == "new"    || front == "n") { newball(command);    }
+    else if (front == "delete" || front == "d") { deleteball(command); }
+    else if (front == "clear"  || front == "c") { clear();             }
     else { throw CommandException::WrongArgument; }
-}
 
-void InputHandler::world::balls::parse(queue<string> command)
-{
-    string front{dequeue(command)};
-
-    if      (front == "get") { get();            }
-    else if (front == "new") { newball(command); }
-    else { throw CommandException::WrongArgument; }
+    WINDOW.setTimescale(oldTimescale);
+    PHYS.setRunaheadTime(oldRunahead);
 }
-void InputHandler::world::balls::get()
+void InputHandler::balls::get(queue<string> command)
 {
+    string tag{};
+    if (!command.empty())
+    {
+        string front{dequeue(command)};
+
+        if(unprefix(front, "tag=") || unprefix(front, "t=")) { tag = front; }
+    }
+
     for (const auto& b : WORLD.getBalls())
     {
+        if (!tag.empty() && !b.hasTag(tag)) { continue; }
+
         const Eigen::Vector2d& position{b.getPositionAtTime(WINDOW.getTime())};
         const Eigen::Vector2d& velocity{b.getLastKeyframeBeforeTime
             (WINDOW.getTime()).velocity};
@@ -238,13 +245,13 @@ void InputHandler::world::balls::get()
 
         Debug::out("ID: " + addSpacing(ID, 8) + "radius: " 
             + addSpacing(radius, 16) + "mass: " + addSpacing(mass, 16)
-            + "position: " + addSpacing(positionX + "; " + positionY, 24) 
-            + "velocity: " + addSpacing(velocityX + "; " + velocityY, 24) 
-            + "color: " + cR + "; " + cG + "; " + cB + "\n");
+            + "position: " + addSpacing(positionX + ";" + positionY, 24) 
+            + "velocity: " + addSpacing(velocityX + ";" + velocityY, 24) 
+            + "color: " + addSpacing(cR + ";" + cG + ";" + cB, 24) 
+            + "tags: " + b.getTagsAsString() + "\n");
     }
 }
-
-void InputHandler::world::balls::newball(queue<string> command)
+void InputHandler::balls::newball(queue<string> command)
 {
     double radius{1};
     Eigen::Vector2d position{0, 0};
@@ -252,29 +259,242 @@ void InputHandler::world::balls::newball(queue<string> command)
     Eigen::Vector2d velocity{0, 0};
     SDL_Color color{255, 255, 255, 255};
     Time time{WINDOW.getTime()};
-
+    std::deque<string> tags{};
     while (!command.empty())
     {
         string param{dequeue(command)};
-        try
-        {
-        if      (unprefix(param, "radius="))  { radius   = std::stod (param); }
-        else if (unprefix(param, "mass="))    { mass     = std::stod (param); }
-        else if (unprefix(param, "position=")){ position = makeVector(param); }
-        else if (unprefix(param, "velocity=")){ velocity = makeVector(param); }
-        else if (unprefix(param, "color="))   { color    = makeColor (param); }
-        }
-        catch (std::invalid_argument const&)
-        {
-            throw CommandException::NumberExpected;
-        }
+
+        if      (unprefix(param, "radius=")   || unprefix(param, "r=")) 
+            { radius   = makeDouble(param, 0);}
+        else if (unprefix(param, "mass=")     || unprefix(param, "m="))
+            { mass     = makeDouble(param, 0);}
+        else if (unprefix(param, "position=") || unprefix(param, "p="))
+            { position = makeVector(param);   }
+        else if (unprefix(param, "velocity=") || unprefix(param, "v="))
+            { velocity = makeVector(param);   }
+        else if (unprefix(param, "color=")    || unprefix(param, "c="))
+            { color    = makeColor (param);   }
+        else if (unprefix(param, "tags=")     || unprefix(param, "t="))
+            { tags = Ball::getTagsFromString(param); }
     }
-    try   { WORLD.newBall(radius, position, mass, velocity, color, time); }
+
+    try
+    {
+    auto& b = WORLD.newBall(radius, position, mass, velocity, color, time);
+    b.tags = tags;
+
+    WINDOW.setTime({});
+    PHYS.purgeKeyframes(time);
+    }
     catch (WorldException ex)
     {
         Debug::err("You are trying to create a ball in an invalid position,"
             " such as inside another ball or outside the world bounds.");
     }
+}
+void InputHandler::balls::deleteball(queue<string> command)
+{
+    string front{dequeue(command)};
+    Debug::out(front);
+
+    if (unprefix(front, "id="))
+    {
+        queue<string> IDs{splitString(front, ';')};
+        
+        while (!IDs.empty())
+        {
+            int ID{makeInt(dequeue(IDs))};
+
+            auto& ballList{WORLD.getBallsModifiable()};
+            
+            try
+            {
+            ballList.erase(std::find(ballList.begin(), ballList.end()
+                , WORLD.getBallByID(ID)));
+            WINDOW.setTime({});
+            PHYS.purgeKeyframes(WINDOW.getTime());
+            }
+            catch (WorldException ex)
+            {
+            Debug::err("Ball with ID " + std::to_string(ID) + " not found");
+            }
+        }
+    }
+    else { throw CommandException::WrongArgument; }
+}
+void InputHandler::balls::clear()
+{
+    WORLD.getBallsModifiable().clear();
+}
+
+void InputHandler::view::parse(queue<string> command)
+{
+    string front{dequeue(command)};
+
+    if      (front == "zoom"     || front == "z") { zoom::parse    (command); }
+    else if (front == "position" || front == "p") { position::parse(command); }
+    else { throw CommandException::WrongArgument; }
+}
+
+void InputHandler::view::zoom::parse(queue<string> command)
+{
+    string front{dequeue(command)};
+
+    if      (front == "set" || front == "s") { set(command); }
+    else if (front == "get" || front == "g") { get();        }
+    else { throw CommandException::WrongArgument; }
+}
+void InputHandler::view::zoom::set(queue<string> command)
+{
+    WINDOW.setZoom(makeDouble(dequeue(command), 0.01));
+}
+void InputHandler::view::zoom::get()
+{
+    Debug::out(std::to_string(WINDOW.getZoom()));
+}
+
+void InputHandler::view::position::parse(queue<string> command)
+{
+    string front{dequeue(command)};
+
+    if      (front == "set"  || front == "s") { set (command); }
+    else if (front == "move" || front == "m") { move(command); }
+    else if (front == "get"  || front == "g") { get ();        }
+    else { throw CommandException::WrongArgument; }
+}
+void InputHandler::view::position::set(queue<string> command)
+{
+    WINDOW.setViewOffset(makeVector(dequeue(command)));
+}
+void InputHandler::view::position::move(queue<string> command)
+{
+    WINDOW.setViewOffset(WINDOW.getViewOffset() + makeVector(dequeue(command)));
+}
+void InputHandler::view::position::get()
+{
+    Eigen::Vector2d v{WINDOW.getViewOffset()};
+    Debug::out(std::to_string(v.x()) + ";" + std::to_string(v.y()));
+}
+
+void InputHandler::bounds::parse(queue<string> command)
+{
+    string front{dequeue(command)};
+
+    if      (front == "set" || front == "s") { set (command); }
+    else if (front == "get" || front == "g") { get ();        }
+    else { throw CommandException::WrongArgument; }
+}
+void InputHandler::bounds::set(queue<string> command)
+{
+    if (command.front() == "clear" || command.front() == "c") 
+    {
+        WORLD.setWorldBounds(std::nullopt);
+        return;
+    }
+    
+    Rect newRect{WORLD.getWorldBounds().value_or(Rect{})};
+
+    while (!command.empty())
+    {
+        string param{dequeue(command)};
+
+        if (unprefix(param, "origin=") || unprefix(param, "o="))
+        {
+            auto temp = makeVector(param);
+            newRect.x = temp.x();
+            newRect.y = temp.y();
+        }
+        else if (unprefix(param, "size=") || unprefix(param, "s="))
+        {
+            auto temp = makeVector(param);
+            newRect.w = temp.x();
+            newRect.h = temp.y();
+        }
+    }
+
+    WORLD.setWorldBounds(newRect);
+    WINDOW.setTime({});
+    PHYS.purgeKeyframes(WINDOW.getTime());
+}
+void InputHandler::bounds::get()
+{
+    const auto& boundsopt{WORLD.getWorldBounds()};
+    if (!boundsopt)
+    {
+        Debug::out("none");
+        return;
+    }
+    const auto& bounds{boundsopt.value()};
+
+    Debug::out("origin: " + std::to_string(bounds.x) + ";" 
+        + std::to_string(bounds.x) + " size: " + std::to_string(bounds.w) + ";"
+        + std::to_string(bounds.h));
+}
+
+void InputHandler::physics::parse(queue<string> command)
+{
+    string front{dequeue(command)};
+
+    if      (front == "runahead"  || front == "r") { runahead::parse  (command); }
+    else if (front == "time"      || front == "t") { time             (command); }
+    else if (front == "step"      || front == "s") { step::parse      (command); }
+    else if (front == "iterations"|| front == "i") { iterations::parse(command); }
+    else { throw CommandException::WrongArgument; }
+}
+void InputHandler::physics::time(queue<string> command)
+{
+    outTime(PHYS.getSimulationTime(), command);
+}
+
+void InputHandler::physics::runahead::parse(queue<string> command)
+{
+    string front{dequeue(command)};
+
+    if      (front == "get" || front == "g") { get(command); }
+    else if (front == "set" || front == "s") { set(command); }
+    else { throw CommandException::WrongArgument; }
+}
+void InputHandler::physics::runahead::get(queue<string> command)
+{
+    outTime(PHYS.getRunaheadTime(), command);
+}
+void InputHandler::physics::runahead::set(queue<string> command)
+{
+    PHYS.setRunaheadTime(makeTime(dequeue(command)));
+}
+
+void InputHandler::physics::step::parse(queue<string> command)
+{
+    string front{dequeue(command)};
+
+    if      (front == "get" || front == "g") { get(command); }
+    else if (front == "set" || front == "s") { set(command); }
+    else { throw CommandException::WrongArgument; }
+}
+void InputHandler::physics::step::get(queue<string> command)
+{
+    outTime(PHYS.getTimestep(), command);
+}
+void InputHandler::physics::step::set(queue<string> command)
+{
+    PHYS.setTimestep(makeTime(dequeue(command)));
+}
+
+void InputHandler::physics::iterations::parse(queue<string> command)
+{
+    string front{dequeue(command)};
+
+    if      (front == "get" || front == "g") { get(); }
+    else if (front == "set" || front == "s") { set(command); }
+    else { throw CommandException::WrongArgument; }
+}
+void InputHandler::physics::iterations::get()
+{
+    Debug::out(std::to_string(PHYS.getMaxCollisionIterations()));
+}
+void InputHandler::physics::iterations::set(queue<string> command)
+{
+    PHYS.setMaxCollisionIterations(makeInt(dequeue(command), 0));
 }
 
 string makeLowercase(string str)
