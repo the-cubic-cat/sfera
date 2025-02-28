@@ -27,8 +27,10 @@ public:
     std::string getTagsAsString() const;
     // get tags from one semicolon-separated string
     static std::deque<std::string> getTagsFromString(std::string str);
-
+    // always returns true with empty string as input
     bool hasTag(std::string tag) const;
+
+    bool isInBounds(Rect bounds, Time time) const;
 
     double getRadius() const { return m_radius; }
     const Eigen::Vector2d getPositionAtTime(Time time) const;
@@ -36,6 +38,8 @@ public:
     const Keyframe& getLastKeyframeBeforeTime(Time time) const;
     const double& getMass() const { return m_mass; }
     int getID() const { return m_id; }
+
+    double getKineticEnergy(Time time) const;
     //void draw(const Window& window);
 
     // creates new keyframe
@@ -85,9 +89,9 @@ public:
         , Time time = {});
 
     // set the world bounds
-    void setWorldBounds(const std::optional<Rect>& bounds) { m_bounds = bounds; }
-    // set the world bounds
-    void setWorldBounds(const Rect& bounds) { m_bounds = bounds; }
+    void setWorldBounds(const std::optional<Rect>& bounds, Time time);
+    void clearWorldBounds() { m_bounds = std::nullopt; }
+    void setWorldBounds(const Rect& bounds, Time time);
 
     // get const reference to world bounds (if they exist)
     const std::optional<Rect>& getWorldBounds() const { return m_bounds; }

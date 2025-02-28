@@ -1,5 +1,7 @@
 #include "physics.hpp"
 
+class InputHandler{ public: static void parseInput(std::string inputCommand); };
+
 bool operator== (const BallPair& a, const BallPair& b)
 {
     if (a.getFirst() == b.getFirst() && a.getSecond() == b.getSecond())
@@ -20,10 +22,71 @@ Physiker::Physiker(AppState& state, World& world, const Time& currentTime
     , m_maxCollisionIterations{maxCollisionIterations}
     , m_simulationTime{}
     , m_runahead{Time::makeS(100)}
+    , m_logStream{}
+    , m_isLogging{false}
+    , m_nextLogTime{}
+    , m_logInterval{}
+    , m_logTags{}
+    , m_sep{';'}
     , m_state{state}
     , m_world{world}
     , m_currentTime{currentTime}
 {}
+
+double Physiker::getKineticEnergy(Time time, std::string tag)
+{
+    const auto balls{m_world.getBallsWithTag(tag)};
+
+    double r{};
+    for (const Ball& b : balls)
+    {
+        r += b.getKineticEnergy(time);
+    }
+
+    return r;
+}
+
+void Physiker::beginLoggingKineticEnergy(std::string filename, Time interval
+    , std::deque<std::string> logTags)
+{
+    if (m_logStream.is_open()) { return; }
+    m_logStream.open(filename);
+    m_isLogging = true;
+    purgeKeyframes(m_currentTime);
+    m_nextLogTime = m_simulationTime;
+    m_logInterval = interval;
+    m_logTags = logTags;
+
+    writeValToLog("Time:");
+    for (const auto& tag : m_logTags)
+    {
+        writeValToLog(tag + ":");
+    }
+    m_logStream << "\n";
+}
+void Physiker::stopLoggingKineticEnergy()
+{
+    if (!m_logStream.is_open()) { return; }
+
+    m_isLogging = false;
+    m_nextLogTime = {};
+    m_logTags.clear();
+    m_logStream.close();
+}
+void Physiker::logKineticEnergy()
+{
+    writeValToLog(std::to_string(m_simulationTime.getS()));
+    
+    for (const auto& tag : m_logTags)
+    {
+        writeValToLog(std::to_string(getKineticEnergy(m_simulationTime, tag)));
+    }
+    m_logStream << "\n";
+}
+void Physiker::writeValToLog(std::string value)
+{
+    m_logStream << value << m_sep;
+}
 
 void Physiker::purgeKeyframes(Time purgeTime)
 {
@@ -41,6 +104,12 @@ void Physiker::loop()
 {
     while (m_state == AppState::simulation)
     {
+        Inputer::beginInput();
+        if (Inputer::hasInput())
+        {
+            InputHandler::parseInput(Inputer::getInput());
+        }
+
         if (m_simulationTime > m_currentTime + m_runahead) { continue; }
         m_simulationTime += m_timestep;
 
@@ -48,6 +117,12 @@ void Physiker::loop()
 
         handleBoundsCollisions();
         handleBallCollisions();
+
+        if (m_isLogging && m_simulationTime >= m_nextLogTime)
+        {
+            logKineticEnergy();
+            m_nextLogTime += m_logInterval;
+        }
     }
 }
 

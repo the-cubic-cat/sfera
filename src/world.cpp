@@ -21,11 +21,32 @@ std::deque<std::string> Ball::getTagsFromString(std::string str)
 
 bool Ball::hasTag(std::string tag) const
 {
+    if (tag.empty()) { return true; }
+
     for (auto& t : tags)
     {
         if (t == tag) { return true; }
     }
     return false;
+}
+
+bool Ball::isInBounds(Rect bounds, Time time) const
+{
+    // bounds with radius accounted
+    Rect actualBounds { bounds.growBy(-m_radius)};
+
+    if (actualBounds.contains(getPositionAtTime(time)))
+    {
+        return true;
+    }
+    return false;
+}
+
+double Ball::getKineticEnergy(Time time) const
+{
+    double speedSquared{getLastKeyframeBeforeTime(time).velocity.squaredNorm()};
+
+    return (m_mass * speedSquared) / 2;
 }
 
 void Ball::newKeyframe(Keyframe keyframe)
@@ -75,23 +96,23 @@ const Keyframe& Ball::getLastKeyframeBeforeTime(Time time) const
             return k;
         }
     }
-    Debug::err("time is inaccessible: " + std::to_string(time.getS()));
-    return m_keyframes[0];
+    // Debug::err("time is inaccessible: " + std::to_string(time.getS()));
+    // return m_keyframes[0];
 
-    //throw WorldException::TimeInaccessible;
+    throw WorldException::TimeInaccessible;
 }
 
 Ball& World::newBall(double radius, Vector2d position, double mass
     , Vector2d velocity, SDL_Color color, Time time)
 {
-    if (m_bounds)
+    Ball ball{radius, position, mass, velocity, color, time};
+
+    if (m_bounds && !ball.isInBounds(m_bounds.value(), time))
     {
-        Rect collisionBounds { m_bounds.value().growBy(-radius)};
-        if (!collisionBounds.contains(position))
-        {
-            throw WorldException::InvalidBallPosition;
-        }
+        throw WorldException::InvalidBallPosition;
     }
+    // a good programmer would unify this check with the one in physics.cpp.
+    // i am not a good programmer.
     for (auto& b : m_balls)
     {
         Vector2d bPos{b.getPositionAtTime(time)};
@@ -105,8 +126,30 @@ Ball& World::newBall(double radius, Vector2d position, double mass
             throw WorldException::InvalidBallPosition;
         }
     }
-    m_balls.push_back(Ball{radius, position, mass, velocity, color, time});
+    m_balls.push_back(ball);
     return m_balls.back();
+}
+
+void World::setWorldBounds(const Rect& bounds, Time time)
+{
+    for (const auto& b : m_balls)
+    {
+        if (!b.isInBounds(bounds, time))
+        {
+            throw WorldException::InvalidBallPosition;
+        }
+    }
+    m_bounds = std::make_optional(bounds);
+}
+
+void World::setWorldBounds(const std::optional<Rect>& bounds, Time time)
+{
+    if (!bounds)
+    {
+        clearWorldBounds();
+        return;
+    }
+    setWorldBounds(bounds.value(), time);
 }
 
 Ball& World::getBallByID(int ID)

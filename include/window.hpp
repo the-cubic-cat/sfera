@@ -1,6 +1,6 @@
 #pragma once
 
-#include "inputer.hpp"
+#include "world.hpp"
 
 // stolen: https://gamedev.stackexchange.com/questions/110825/how-to-calculate-delta-time-with-sdl
 struct Clock
@@ -42,23 +42,16 @@ public:
     void setZoom(double zoom) { m_displayScale = zoom * 100; }
     double getZoom() const { return m_displayScale / 100; }
 
-    void setViewOffset(Eigen::Vector2d offset)
+    void setViewOffset(Eigen::Vector2d offset) { m_viewOffset = offset; }
+    Eigen::Vector2d getViewOffset() const { return m_viewOffset; }
+
+    void recenterView()
     {
         int w{};
         int h{};
         SDL_GetWindowSize(m_windowSDL, &w, &h);
-        m_displayPositionOffset = offset * m_displayScale 
-            + Eigen::Vector2d{static_cast<double>(w) / 2
-            , static_cast<double>(h) / 2};
-    }
-    Eigen::Vector2d getViewOffset() const
-    {
-        int w{};
-        int h{};
-        SDL_GetWindowSize(m_windowSDL, &w, &h);
-        
-        return (m_displayPositionOffset - Eigen::Vector2d{static_cast<double>(w) 
-            / 2, static_cast<double>(h) / 2}) / m_displayScale ;
+
+        m_displayCenter = {w / 2, h / 2};
     }
 
     // it doesn't make sense for windows to be copied or moved
@@ -93,7 +86,8 @@ private:
     TTF_Font *m_UIfontSDL;
 
     double m_displayScale;
-    Eigen::Vector2d m_displayPositionOffset;
+    Eigen::Vector2d m_displayCenter;
+    Eigen::Vector2d m_viewOffset;
     double m_timescale;
     Time m_time;
     Clock m_clock;

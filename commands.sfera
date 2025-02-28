@@ -1,0 +1,132 @@
+time scale set 0
+view zoom set 0.045
+bounds set origin=-110;-60 size=220;120
+
+// hot gas particles
+
+// row 1
+b n t=hot c=255;150;140 v=10r p=-100;-50
+b n t=hot c=255;150;140 v=10r p=-100;-40
+b n t=hot c=255;150;140 v=10r p=-100;-30
+b n t=hot c=255;150;140 v=10r p=-100;-20
+b n t=hot c=255;150;140 v=10r p=-100;-10
+b n t=hot c=255;150;140 v=10r p=-100;0
+b n t=hot c=255;150;140 v=10r p=-100;10
+b n t=hot c=255;150;140 v=10r p=-100;20
+b n t=hot c=255;150;140 v=10r p=-100;30
+b n t=hot c=255;150;140 v=10r p=-100;40
+b n t=hot c=255;150;140 v=10r p=-100;50
+// row 2
+b n t=hot c=255;150;140 v=10r p=-90;-50
+b n t=hot c=255;150;140 v=10r p=-90;-40
+b n t=hot c=255;150;140 v=10r p=-90;-30
+b n t=hot c=255;150;140 v=10r p=-90;-20
+b n t=hot c=255;150;140 v=10r p=-90;-10
+b n t=hot c=255;150;140 v=10r p=-90;0
+b n t=hot c=255;150;140 v=10r p=-90;10
+b n t=hot c=255;150;140 v=10r p=-90;20
+b n t=hot c=255;150;140 v=10r p=-90;30
+b n t=hot c=255;150;140 v=10r p=-90;40
+b n t=hot c=255;150;140 v=10r p=-90;50
+//  row 3
+b n t=hot c=255;150;140 v=10r p=-80;-50
+b n t=hot c=255;150;140 v=10r p=-80;-40
+b n t=hot c=255;150;140 v=10r p=-80;-30
+b n t=hot c=255;150;140 v=10r p=-80;-20
+b n t=hot c=255;150;140 v=10r p=-80;-10
+b n t=hot c=255;150;140 v=10r p=-80;0
+b n t=hot c=255;150;140 v=10r p=-80;10
+b n t=hot c=255;150;140 v=10r p=-80;20
+b n t=hot c=255;150;140 v=10r p=-80;30
+b n t=hot c=255;150;140 v=10r p=-80;40
+b n t=hot c=255;150;140 v=10r p=-80;50
+//  row 4
+b n t=hot c=255;150;140 v=10r p=-70;-50
+b n t=hot c=255;150;140 v=10r p=-70;-40
+b n t=hot c=255;150;140 v=10r p=-70;-30
+b n t=hot c=255;150;140 v=10r p=-70;-20
+b n t=hot c=255;150;140 v=10r p=-70;-10
+b n t=hot c=255;150;140 v=10r p=-70;0
+b n t=hot c=255;150;140 v=10r p=-70;10
+b n t=hot c=255;150;140 v=10r p=-70;20
+b n t=hot c=255;150;140 v=10r p=-70;30
+b n t=hot c=255;150;140 v=10r p=-70;40
+b n t=hot c=255;150;140 v=10r p=-70;50
+//  row 5
+b n t=hot c=255;150;140 v=10r p=-60;-50
+b n t=hot c=255;150;140 v=10r p=-60;-40
+b n t=hot c=255;150;140 v=10r p=-60;-30
+b n t=hot c=255;150;140 v=10r p=-60;-20
+b n t=hot c=255;150;140 v=10r p=-60;-10
+b n t=hot c=255;150;140 v=10r p=-60;0
+b n t=hot c=255;150;140 v=10r p=-60;10
+b n t=hot c=255;150;140 v=10r p=-60;20
+b n t=hot c=255;150;140 v=10r p=-60;30
+b n t=hot c=255;150;140 v=10r p=-60;40
+b n t=hot c=255;150;140 v=10r p=-60;50
+
+
+// cold gas particles
+
+// row 1
+b n t=cold c=140;220;255 v=1r p=100;-50
+b n t=cold c=140;220;255 v=1r p=100;-40
+b n t=cold c=140;220;255 v=1r p=100;-30
+b n t=cold c=140;220;255 v=1r p=100;-20
+b n t=cold c=140;220;255 v=1r p=100;-10
+b n t=cold c=140;220;255 v=1r p=100;0
+b n t=cold c=140;220;255 v=1r p=100;10
+b n t=cold c=140;220;255 v=1r p=100;20
+b n t=cold c=140;220;255 v=1r p=100;30
+b n t=cold c=140;220;255 v=1r p=100;40
+b n t=cold c=140;220;255 v=1r p=100;50
+// row 2
+b n t=cold c=140;220;255 v=1r p=90;-50
+b n t=cold c=140;220;255 v=1r p=90;-40
+b n t=cold c=140;220;255 v=1r p=90;-30
+b n t=cold c=140;220;255 v=1r p=90;-20
+b n t=cold c=140;220;255 v=1r p=90;-10
+b n t=cold c=140;220;255 v=1r p=90;0
+b n t=cold c=140;220;255 v=1r p=90;10
+b n t=cold c=140;220;255 v=1r p=90;20
+b n t=cold c=140;220;255 v=1r p=90;30
+b n t=cold c=140;220;255 v=1r p=90;40
+b n t=cold c=140;220;255 v=1r p=90;50
+//  row 3
+b n t=cold c=140;220;255 v=1r p=80;-50
+b n t=cold c=140;220;255 v=1r p=80;-40
+b n t=cold c=140;220;255 v=1r p=80;-30
+b n t=cold c=140;220;255 v=1r p=80;-20
+b n t=cold c=140;220;255 v=1r p=80;-10
+b n t=cold c=140;220;255 v=1r p=80;0
+b n t=cold c=140;220;255 v=1r p=80;10
+b n t=cold c=140;220;255 v=1r p=80;20
+b n t=cold c=140;220;255 v=1r p=80;30
+b n t=cold c=140;220;255 v=1r p=80;40
+b n t=cold c=140;220;255 v=1r p=80;50
+//  row 4
+b n t=cold c=140;220;255 v=1r p=70;-50
+b n t=cold c=140;220;255 v=1r p=70;-40
+b n t=cold c=140;220;255 v=1r p=70;-30
+b n t=cold c=140;220;255 v=1r p=70;-20
+b n t=cold c=140;220;255 v=1r p=70;-10
+b n t=cold c=140;220;255 v=1r p=70;0
+b n t=cold c=140;220;255 v=1r p=70;10
+b n t=cold c=140;220;255 v=1r p=70;20
+b n t=cold c=140;220;255 v=1r p=70;30
+b n t=cold c=140;220;255 v=1r p=70;40
+b n t=cold c=140;220;255 v=1r p=70;50
+//  row 5
+b n t=cold c=140;220;255 v=1r p=60;-50
+b n t=cold c=140;220;255 v=1r p=60;-40
+b n t=cold c=140;220;255 v=1r p=60;-30
+b n t=cold c=140;220;255 v=1r p=60;-20
+b n t=cold c=140;220;255 v=1r p=60;-10
+b n t=cold c=140;220;255 v=1r p=60;0
+b n t=cold c=140;220;255 v=1r p=60;10
+b n t=cold c=140;220;255 v=1r p=60;20
+b n t=cold c=140;220;255 v=1r p=60;30
+b n t=cold c=140;220;255 v=1r p=60;40
+b n t=cold c=140;220;255 v=1r p=60;50
+
+physics logkineticenergy begin filename=e_k_log interval=0.5 tags=hot;cold

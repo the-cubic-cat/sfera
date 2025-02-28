@@ -1,6 +1,5 @@
 #include "window.hpp"
 
-class InputHandler{ public: static void parseInput(std::string inputCommand); };
 using Eigen::Vector2d;
 
 Window::Window(const AppState& state, const World& world, Time& currentTime)
@@ -9,7 +8,8 @@ Window::Window(const AppState& state, const World& world, Time& currentTime)
     , m_surfaceSDL{}
     , m_UIfontSDL{}
     , m_displayScale{100}
-    , m_displayPositionOffset{540, 540}
+    , m_displayCenter{540, 540}
+    , m_viewOffset{0, 0}
     , m_timescale{1}
     , m_time{}
     , m_clock{}
@@ -70,7 +70,7 @@ void Window::drawCircle(SDL_Color color, Eigen::Vector2d position, double radius
     , bool filled)
 {
     Vector2d screenPosition = position * m_displayScale 
-        + m_displayPositionOffset;
+        + m_displayCenter + m_viewOffset * m_displayScale;
     int screenRadius = static_cast<int>(radius * m_displayScale);
 
     if (filled)
@@ -88,7 +88,7 @@ void Window::drawCircle(SDL_Color color, Eigen::Vector2d position, double radius
 void Window::drawRect(SDL_Color color, Rect rect, bool filled)
 {
     SDL_Rect screenRect = static_cast<SDL_Rect>(rect * m_displayScale 
-        + m_displayPositionOffset);
+        + m_displayCenter + m_viewOffset * m_displayScale);
 
     if (filled)
     {
@@ -102,17 +102,21 @@ void Window::loop()
 {
     while (m_state == AppState::simulation)
     {
-        Inputer::beginInput();
-        if (Inputer::hasInput())
-        {
-            InputHandler::parseInput(Inputer::getInput());
-        }
         // placeholder
         SDL_Event eventSDL;
         while (SDL_PollEvent(&eventSDL) != 0)
         {
-            // this is just here so that os doesn't complain about
-            // program not responding
+            // makes resizing window slightly less of a pain
+            switch (eventSDL.type)
+            {
+            case SDL_WINDOWEVENT:
+            switch (eventSDL.window.event)
+            {
+            case SDL_WINDOWEVENT_SIZE_CHANGED:
+                recenterView();
+                break;
+            }
+            }
         }
         m_currentTime = m_time;
         redraw();
@@ -146,7 +150,7 @@ void Window::redraw()
             Debug::err("Time is inaccessible: " + std::to_string(m_time.getS())
                 + ". Setting time to 0 and pausing.");
             m_timescale = 0;
-            m_time = {};
+            m_time = Time::makeNS(1);
             break;
         default:
             break;

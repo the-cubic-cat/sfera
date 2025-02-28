@@ -1,6 +1,7 @@
 #pragma once
 
-#include "world.hpp"
+#include "inputer.hpp"
+#include <fstream>
 
 /* collision object колобжок)))
 #define COLLOBJ std::variant<Direction, std::reference_wrapper<Ball>>
@@ -95,6 +96,13 @@ public:
     void setMaxCollisionIterations(int iterations) 
         { m_maxCollisionIterations = iterations; }
     int getMaxCollisionIterations() { return m_maxCollisionIterations; }
+
+    double getKineticEnergy(Time time, std::string tag = "");
+
+    void beginLoggingKineticEnergy(std::string filename, Time interval
+        , std::deque<std::string> logTags);
+    void stopLoggingKineticEnergy();
+    bool isLoggingKineticEnergy() { return m_isLogging; }
     // deletes all keyframes, creates new keyframes with state of balls at 
     // purgeTime, resets simulation time to 0 
     void purgeKeyframes(Time purgeTime);
@@ -135,6 +143,16 @@ private:
     Time m_simulationTime;
     // how far ahead of the graphics time physics time is allowed to run
     Time m_runahead;
+
+    // logging stuff
+    std::ofstream m_logStream;
+    bool m_isLogging;
+    Time m_nextLogTime;
+    Time m_logInterval;
+    std::deque<std::string> m_logTags;
+    char m_sep;
+    void logKineticEnergy();
+    void writeValToLog(std::string value);
 
     enum struct SearchAction
     {

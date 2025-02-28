@@ -2,6 +2,7 @@
 
 #include "window.hpp"
 #include "physics.hpp"
+#include <random>
 
 class InputHandler
 {
@@ -38,6 +39,14 @@ private:
     static SDL_Color makeColor(std::string colorString);
 
     static void outTime(Time time, std::queue<std::string> command);
+
+    class load
+    {
+    public:
+        static void parse(std::queue<std::string> command);
+    private:
+        static std::string fileBeingLoaded; 
+    };
 
     class time
     {
@@ -108,6 +117,7 @@ private:
         static void parse(std::queue<std::string> command);
     private:
         static void time(std::queue<std::string> command);
+        static void kineticEnergy(std::queue<std::string> command);
         class runahead
         {
         public:
@@ -131,6 +141,14 @@ private:
         private:
             static void get();
             static void set(std::queue<std::string> command);
+        };
+        class logkineticenergy
+        {
+        public:
+            static void parse(std::queue<std::string> command);
+        private:
+            static void begin(std::queue<std::string> command);
+            static void end();
         };
     };
 };

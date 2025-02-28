@@ -7,7 +7,7 @@ int main()
 
     World world{};
 
-    world.setWorldBounds(Rect{-5, -5, 10, 10});
+    world.setWorldBounds(Rect{-5, -5, 10, 10}, currentTime);
 
     Window window{state, world, currentTime};
     Physiker physiker{state, world, currentTime};
