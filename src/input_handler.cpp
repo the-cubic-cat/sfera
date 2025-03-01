@@ -505,11 +505,6 @@ void InputHandler::physics::runahead::parse(queue<string>& command)
     string front{dequeue(command)};
 
     if      (front == "get" || front == "g") { get(command); }
-    else if (PHYS.isLoggingKineticEnergy())
-    {
-        Debug::err("Cannot use commands that alter world state while logging"
-            " kinetic energy.");
-    }
     else if (front == "set" || front == "s") { set(command); }
     else { throw CommandException::WrongArgument; }
 }
