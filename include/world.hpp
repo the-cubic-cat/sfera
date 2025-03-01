@@ -26,9 +26,9 @@ public:
     // get tags as one semicolon-separated string
     std::string getTagsAsString() const;
     // get tags from one semicolon-separated string
-    static std::deque<std::string> getTagsFromString(std::string str);
+    static std::deque<std::string> getTagsFromString(std::string_view str);
     // always returns true with empty string as input
-    bool hasTag(std::string tag) const;
+    bool hasTag(std::string_view tag) const;
 
     bool isInBounds(Rect bounds, Time time) const;
 
@@ -60,7 +60,7 @@ private:
 
     Ball(double radius, Eigen::Vector2d position, double mass, Eigen::Vector2d velocity
         , SDL_Color color = {255, 255, 255, 255}, Time time = {}
-        , std::deque<std::string> tags = {})
+        , const std::deque<std::string>& tags = {})
         : tags{tags}
         , m_radius{radius}
         , m_mass{mass}
@@ -104,7 +104,7 @@ public:
     // get a non-const reference to a ball with the given ID
     Ball& getBallByID(int ID);
     // get all balls with specified tag
-    std::vector<std::reference_wrapper<Ball>> getBallsWithTag(std::string tag);
+    std::vector<std::reference_wrapper<Ball>> getBallsWithTag(std::string_view tag);
 
     World() : m_balls{}, m_bounds{} {}
     ~World() = default;

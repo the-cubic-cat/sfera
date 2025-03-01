@@ -120,7 +120,7 @@ bool unsuffix(std::string& suffixedString, std::string suffix);
 // removes given prefix from string, returns true if operation succeeded
 bool unprefix(std::string& prefixedString, std::string prefix);
 
-std::deque<std::string> splitString(std::string str, char separator);
+std::deque<std::string> splitString(const std::string& str, char separator);
 
 template <typename T>
 std::vector<T> vectRemoveDuplicates(std::vector<T> v)

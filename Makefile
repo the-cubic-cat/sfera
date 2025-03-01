@@ -1,5 +1,5 @@
 CXX       := g++
-CXX_FLAGS := -std=c++23 -ggdb $(shell pkg-config --cflags SDL2_gfx) -Wall -Weffc++ -Wextra -Wconversion -Wsign-conversion -fsanitize=undefined -J 16
+CXX_FLAGS := -std=c++23 -ggdb $(shell pkg-config --cflags SDL2_gfx) -Wall -Weffc++ -Wextra -Wconversion -Wsign-conversion -fsanitize=undefined -J 16 -O3
 
 BIN     := bin
 SRC     := src

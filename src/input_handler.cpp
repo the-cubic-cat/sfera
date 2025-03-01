@@ -140,7 +140,7 @@ SDL_Color InputHandler::makeColor(std::string colorString)
         , static_cast<Uint8>(a)};
 }
 
-void InputHandler::outTime(Time time, queue<string> command)
+void InputHandler::outTime(Time time, queue<string>& command)
 {
     string unit{};
     if(!command.empty())
@@ -162,7 +162,7 @@ void InputHandler::outTime(Time time, queue<string> command)
     }
 }
 
-void InputHandler::time::parse(queue<string> command)
+void InputHandler::time::parse(queue<string>& command)
 {
     string front{dequeue(command)};
 
@@ -173,22 +173,22 @@ void InputHandler::time::parse(queue<string> command)
     else { throw CommandException::WrongArgument; }
 }
 
-void InputHandler::time::set(queue<string> command)
+void InputHandler::time::set(queue<string>& command)
 {
     WINDOW.setTime(makeTime(dequeue(command)));
 }
-void InputHandler::time::move(queue<string> command)
+void InputHandler::time::move(queue<string>& command)
 {
     string t{command.front()};
 
     WINDOW.setTime(WINDOW.getTime() + makeTime(t, true));
 }
-void InputHandler::time::get(queue<string> command)
+void InputHandler::time::get(queue<string>& command)
 {
     outTime(WINDOW.getTime(), command);
 }
 
-void InputHandler::time::scale::parse(queue<string> command)
+void InputHandler::time::scale::parse(queue<string>& command)
 {
     string front{dequeue(command)};
 
@@ -196,7 +196,7 @@ void InputHandler::time::scale::parse(queue<string> command)
     else if (front == "get" || front == "g") { get();        }
     else { throw CommandException::WrongArgument; }
 }
-void InputHandler::time::scale::set(queue<string> command)
+void InputHandler::time::scale::set(queue<string>& command)
 {
     WINDOW.setTimescale(makeDouble(dequeue(command)));
 }
@@ -205,7 +205,7 @@ void InputHandler::time::scale::get()
     Debug::out(std::to_string(WINDOW.getTimescale()));
 }
 
-void InputHandler::balls::parse(queue<string> command)
+void InputHandler::balls::parse(queue<string>& command)
 {
     // doing this will hopefully prevent horrible multithreading bugs
     double oldTimescale{WINDOW.getTimescale()};
@@ -236,7 +236,7 @@ void InputHandler::balls::parse(queue<string> command)
     WINDOW.setTimescale(oldTimescale);
     PHYS.setRunaheadTime(oldRunahead);
 }
-void InputHandler::balls::get(queue<string> command)
+void InputHandler::balls::get(queue<string>& command)
 {
     string tag{};
     if (!command.empty())
@@ -276,7 +276,7 @@ void InputHandler::balls::get(queue<string> command)
             + "tags: " + b.getTagsAsString() + "\n");
     }
 }
-void InputHandler::balls::newball(queue<string> command)
+void InputHandler::balls::newball(queue<string>& command)
 {
     double radius{1};
     Eigen::Vector2d position{0, 0};
@@ -317,7 +317,7 @@ void InputHandler::balls::newball(queue<string> command)
             " such as inside another ball or outside the world bounds.");
     }
 }
-void InputHandler::balls::deleteball(queue<string> command)
+void InputHandler::balls::deleteball(queue<string>& command)
 {
     string front{dequeue(command)};
     Debug::out(front);
@@ -352,7 +352,7 @@ void InputHandler::balls::clear()
     WORLD.getBallsModifiable().clear();
 }
 
-void InputHandler::view::parse(queue<string> command)
+void InputHandler::view::parse(queue<string>& command)
 {
     string front{dequeue(command)};
 
@@ -361,7 +361,7 @@ void InputHandler::view::parse(queue<string> command)
     else { throw CommandException::WrongArgument; }
 }
 
-void InputHandler::view::zoom::parse(queue<string> command)
+void InputHandler::view::zoom::parse(queue<string>& command)
 {
     string front{dequeue(command)};
 
@@ -369,7 +369,7 @@ void InputHandler::view::zoom::parse(queue<string> command)
     else if (front == "get" || front == "g") { get();        }
     else { throw CommandException::WrongArgument; }
 }
-void InputHandler::view::zoom::set(queue<string> command)
+void InputHandler::view::zoom::set(queue<string>& command)
 {
     WINDOW.setZoom(makeDouble(dequeue(command), 0.01));
 }
@@ -378,7 +378,7 @@ void InputHandler::view::zoom::get()
     Debug::out(std::to_string(WINDOW.getZoom()));
 }
 
-void InputHandler::view::position::parse(queue<string> command)
+void InputHandler::view::position::parse(queue<string>& command)
 {
     string front{dequeue(command)};
 
@@ -387,11 +387,11 @@ void InputHandler::view::position::parse(queue<string> command)
     else if (front == "get"  || front == "g") { get ();        }
     else { throw CommandException::WrongArgument; }
 }
-void InputHandler::view::position::set(queue<string> command)
+void InputHandler::view::position::set(queue<string>& command)
 {
     WINDOW.setViewOffset(makeVector(dequeue(command)));
 }
-void InputHandler::view::position::move(queue<string> command)
+void InputHandler::view::position::move(queue<string>& command)
 {
     WINDOW.setViewOffset(WINDOW.getViewOffset() + makeVector(dequeue(command)));
 }
@@ -401,7 +401,7 @@ void InputHandler::view::position::get()
     Debug::out(std::to_string(v.x()) + ";" + std::to_string(v.y()));
 }
 
-void InputHandler::bounds::parse(queue<string> command)
+void InputHandler::bounds::parse(queue<string>& command)
 {
     string front{dequeue(command)};
 
@@ -414,7 +414,7 @@ void InputHandler::bounds::parse(queue<string> command)
     else if (front == "set" || front == "s") { set (command); }
     else { throw CommandException::WrongArgument; }
 }
-void InputHandler::bounds::set(queue<string> command)
+void InputHandler::bounds::set(queue<string>& command)
 {
     if (command.front() == "clear" || command.front() == "c") 
     {
@@ -469,7 +469,7 @@ void InputHandler::bounds::get()
         + std::to_string(bounds.h));
 }
 
-void InputHandler::physics::parse(queue<string> command)
+void InputHandler::physics::parse(queue<string>& command)
 {
     string front{dequeue(command)};
 
@@ -482,12 +482,12 @@ void InputHandler::physics::parse(queue<string> command)
         { logkineticenergy::parse(command); }
     else { throw CommandException::WrongArgument; }
 }
-void InputHandler::physics::time(queue<string> command)
+void InputHandler::physics::time(queue<string>& command)
 {
     outTime(PHYS.getSimulationTime(), command);
 }
 
-void InputHandler::physics::kineticEnergy(queue<string> command)
+void InputHandler::physics::kineticEnergy(queue<string>& command)
 {
     string tag{""};
     if (!command.empty())
@@ -500,7 +500,7 @@ void InputHandler::physics::kineticEnergy(queue<string> command)
     Debug::out(std::to_string(PHYS.getKineticEnergy(WINDOW.getTime(), tag)));
 }
 
-void InputHandler::physics::runahead::parse(queue<string> command)
+void InputHandler::physics::runahead::parse(queue<string>& command)
 {
     string front{dequeue(command)};
 
@@ -513,16 +513,16 @@ void InputHandler::physics::runahead::parse(queue<string> command)
     else if (front == "set" || front == "s") { set(command); }
     else { throw CommandException::WrongArgument; }
 }
-void InputHandler::physics::runahead::get(queue<string> command)
+void InputHandler::physics::runahead::get(queue<string>& command)
 {
     outTime(PHYS.getRunaheadTime(), command);
 }
-void InputHandler::physics::runahead::set(queue<string> command)
+void InputHandler::physics::runahead::set(queue<string>& command)
 {
     PHYS.setRunaheadTime(makeTime(dequeue(command)));
 }
 
-void InputHandler::physics::step::parse(queue<string> command)
+void InputHandler::physics::step::parse(queue<string>& command)
 {
     string front{dequeue(command)};
 
@@ -535,16 +535,16 @@ void InputHandler::physics::step::parse(queue<string> command)
     else if (front == "set" || front == "s") { set(command); }
     else { throw CommandException::WrongArgument; }
 }
-void InputHandler::physics::step::get(queue<string> command)
+void InputHandler::physics::step::get(queue<string>& command)
 {
     outTime(PHYS.getTimestep(), command);
 }
-void InputHandler::physics::step::set(queue<string> command)
+void InputHandler::physics::step::set(queue<string>& command)
 {
     PHYS.setTimestep(makeTime(dequeue(command)));
 }
 
-void InputHandler::physics::iterations::parse(queue<string> command)
+void InputHandler::physics::iterations::parse(queue<string>& command)
 {
     string front{dequeue(command)};
 
@@ -561,12 +561,12 @@ void InputHandler::physics::iterations::get()
 {
     Debug::out(std::to_string(PHYS.getMaxCollisionIterations()));
 }
-void InputHandler::physics::iterations::set(queue<string> command)
+void InputHandler::physics::iterations::set(queue<string>& command)
 {
     PHYS.setMaxCollisionIterations(makeInt(dequeue(command), 0));
 }
 
-void InputHandler::physics::logkineticenergy::parse(queue<string> command)
+void InputHandler::physics::logkineticenergy::parse(queue<string>& command)
 {
     string front{dequeue(command)};
 
@@ -574,7 +574,7 @@ void InputHandler::physics::logkineticenergy::parse(queue<string> command)
     else if (front == "end"   || front == "e") { logkineticenergy::end();   }
     else { throw CommandException::WrongArgument; }
 }
-void InputHandler::physics::logkineticenergy::begin(queue<string> command)
+void InputHandler::physics::logkineticenergy::begin(queue<string>& command)
 {
     if (PHYS.isLoggingKineticEnergy())
     {
@@ -619,7 +619,7 @@ void InputHandler::physics::logkineticenergy::end()
 
 string InputHandler::load::fileBeingLoaded{};
 
-void InputHandler::load::parse(queue<string> command)
+void InputHandler::load::parse(queue<string>& command)
 {
     string front{dequeue(command)};
 

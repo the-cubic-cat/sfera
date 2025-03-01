@@ -33,7 +33,7 @@ Physiker::Physiker(AppState& state, World& world, const Time& currentTime
     , m_currentTime{currentTime}
 {}
 
-double Physiker::getKineticEnergy(Time time, std::string tag)
+double Physiker::getKineticEnergy(Time time, std::string_view tag)
 {
     const auto balls{m_world.getBallsWithTag(tag)};
 
@@ -46,11 +46,22 @@ double Physiker::getKineticEnergy(Time time, std::string tag)
     return r;
 }
 
-void Physiker::beginLoggingKineticEnergy(std::string filename, Time interval
-    , std::deque<std::string> logTags)
+void Physiker::beginLoggingKineticEnergy(const std::string& filename, Time interval
+    , const std::deque<std::string>& logTags)
 {
     if (m_logStream.is_open()) { return; }
-    m_logStream.open(filename);
+    
+    if (fileExists(filename + ".csv"))
+    {
+        int i{1};
+        while (fileExists(filename + "_" + std::to_string(i)  + ".csv"))
+        {
+            i++;
+        }
+        m_logStream.open(filename + "_" + std::to_string(i) + ".csv");
+    }
+    else { m_logStream.open(filename + ".csv"); }
+
     m_isLogging = true;
     purgeKeyframes(m_currentTime);
     m_nextLogTime = m_simulationTime;
@@ -83,9 +94,18 @@ void Physiker::logKineticEnergy()
     }
     m_logStream << "\n";
 }
-void Physiker::writeValToLog(std::string value)
+void Physiker::writeValToLog(std::string_view value)
 {
     m_logStream << value << m_sep;
+}
+bool Physiker::fileExists(const std::string& name)
+{
+    if (FILE *file = fopen(name.c_str(), "r")) {
+        fclose(file);
+        return true;
+    } else {
+        return false;
+    }   
 }
 
 void Physiker::purgeKeyframes(Time purgeTime)
@@ -310,22 +330,23 @@ BallPairVector Physiker::getCollidingBalls(bool getTouching)
     auto& balls = m_world.getBallsModifiable();
 
     for (auto& ba : balls){
+        
+    Eigen::Vector2d aPos{ba.getPositionAtTime(m_simulationTime)};
+    double aRad{ba.getRadius()};
+
     for (auto& bb : balls)
     {
         if (bb == ba) { continue; }
-
-        Eigen::Vector2d aPos{ba.getPositionAtTime(m_simulationTime)};
-        double aRad{ba.getRadius()};
-
+        
         Eigen::Vector2d bPos{bb.getPositionAtTime(m_simulationTime)};
         double bRad{bb.getRadius()};
-
+        
         double radSum{bRad + aRad + collisionErrorMarginHeuristic};
-
+        
         // preliminary filter to reduce amount of math
         if (abs(aPos.x() - bPos.x()) > radSum 
          || abs(aPos.y() - bPos.y()) > radSum) { continue; }
-        
+
         // not knowing linear algebra, the fact that norm() returns the absolute
         // value of a vector and not the normalized form of a vector severely
         // fucked me over
@@ -334,9 +355,9 @@ BallPairVector Physiker::getCollidingBalls(bool getTouching)
 
         if (getTouching) 
             { collisionDistance += std::max(bRad, aRad) * m_collisionErrMargin; }
-        
-        double collisionDistanceSquare{collisionDistance * collisionDistance};
 
+        double collisionDistanceSquare{collisionDistance * collisionDistance};
+        
         if (distanceSquare <= collisionDistanceSquare)
         {
             result.push_back({ba, bb});

@@ -154,7 +154,7 @@ bool unprefix(std::string& prefixedString, std::string prefix)
     return true;
 }
 
-std::deque<std::string> splitString(std::string str, char separator)
+std::deque<std::string> splitString(const std::string& str, char separator)
 {
     std::deque<std::string> r{};
 

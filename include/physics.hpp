@@ -97,10 +97,10 @@ public:
         { m_maxCollisionIterations = iterations; }
     int getMaxCollisionIterations() { return m_maxCollisionIterations; }
 
-    double getKineticEnergy(Time time, std::string tag = "");
+    double getKineticEnergy(Time time, std::string_view tag = "");
 
-    void beginLoggingKineticEnergy(std::string filename, Time interval
-        , std::deque<std::string> logTags);
+    void beginLoggingKineticEnergy(const std::string& filename, Time interval
+        , const std::deque<std::string>& logTags);
     void stopLoggingKineticEnergy();
     bool isLoggingKineticEnergy() { return m_isLogging; }
     // deletes all keyframes, creates new keyframes with state of balls at 
@@ -110,6 +110,10 @@ public:
     // begins executing physics loop. it will run while m_state == simulation.
     void loop();
     
+    ~Physiker()
+    {
+        stopLoggingKineticEnergy();
+    }
     Physiker(const Physiker& physiker) = delete;
     Physiker& operator=(const Physiker& physiker) = delete;
 
@@ -152,7 +156,9 @@ private:
     std::deque<std::string> m_logTags;
     char m_sep;
     void logKineticEnergy();
-    void writeValToLog(std::string value);
+    void writeValToLog(std::string_view value);
+    // stolen: https://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exists-using-standard-c-c11-14-17-c
+    bool fileExists(const std::string& name);
 
     enum struct SearchAction
     {

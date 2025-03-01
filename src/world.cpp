@@ -14,12 +14,12 @@ std::string Ball::getTagsAsString() const
     }
     return r;
 }
-std::deque<std::string> Ball::getTagsFromString(std::string str)
+std::deque<std::string> Ball::getTagsFromString(std::string_view str)
 {
-    return splitString(str, ';');
+    return splitString(static_cast<std::string>(str), ';');
 }
 
-bool Ball::hasTag(std::string tag) const
+bool Ball::hasTag(std::string_view tag) const
 {
     if (tag.empty()) { return true; }
 
@@ -167,7 +167,7 @@ Ball& World::getBallByID(int ID)
     throw WorldException::BallNotFound;
 }
 
-std::vector<std::reference_wrapper<Ball>> World::getBallsWithTag(std::string tag)
+std::vector<std::reference_wrapper<Ball>> World::getBallsWithTag(std::string_view tag)
 {
     std::vector<std::reference_wrapper<Ball>> r{};
 
