@@ -83,6 +83,11 @@ bool operator!= (const Ball& a, const Ball& b);
 class World
 {
 public:
+    // time up to which world state has been calculated
+    Time endTime{};
+
+    std::atomic<bool> isBeingEdited{false};
+
     // creates a new ball, adds it to the ball list
     Ball& newBall(double radius, Eigen::Vector2d position, double mass = 1
         , Eigen::Vector2d velocity = {0, 0}, SDL_Color color = {255, 255, 255, 255}

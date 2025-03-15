@@ -10,7 +10,13 @@ public:
     static void init(World& world, Window& window, Physiker& physiker
         , AppState& state);
     static void parseInput(std::string inputCommand);
+    static void checkWaiting();
 private:
+    
+    #define COMMAND std::queue<std::string>
+
+    static void runCommand(COMMAND& command);
+
     static bool m_initalized;
     static std::string m_helpText;
 
@@ -38,12 +44,12 @@ private:
     static Eigen::Vector2d makeVector(std::string vectorString);
     static SDL_Color makeColor(std::string colorString);
 
-    static void outTime(Time time, std::queue<std::string>& command);
+    static void outTime(Time time, COMMAND& command);
 
     class load
     {
     public:
-        static void parse(std::queue<std::string>& command);
+        static void parse(COMMAND& command);
     private:
         static std::string fileBeingLoaded; 
     };
@@ -51,17 +57,17 @@ private:
     class time
     {
     public:
-        static void parse(std::queue<std::string>& command);
+        static void parse(COMMAND& command);
     private:
-        static void set(std::queue<std::string>& command);
-        static void move(std::queue<std::string>& command);
-        static void get(std::queue<std::string>& command);
+        static void set(COMMAND& command);
+        static void move(COMMAND& command);
+        static void get(COMMAND& command);
         class scale
         {
         public:
-            static void parse(std::queue<std::string>& command);
+            static void parse(COMMAND& command);
         private:
-            static void set(std::queue<std::string>& command);
+            static void set(COMMAND& command);
             static void get();
         };
     };
@@ -69,35 +75,35 @@ private:
     class balls
     {
     public:
-        static void parse(std::queue<std::string>& command);
+        static void parse(COMMAND& command);
     private:
-        static void get(std::queue<std::string>& command);
-        static void newball(std::queue<std::string>& command);
-        static void deleteball(std::queue<std::string>& command);
+        static void get(COMMAND& command);
+        static void newball(COMMAND& command);
+        static void deleteball(COMMAND& command);
         static void clear();
     };
 
     class view
     {
     public:
-        static void parse(std::queue<std::string>& command);
+        static void parse(COMMAND& command);
     private:
         class zoom
         {
         public:
-            static void parse(std::queue<std::string>& command);
+            static void parse(COMMAND& command);
         private:
-            static void set(std::queue<std::string>& command);
+            static void set(COMMAND& command);
             static void get();
         };
 
         class position
         {
         public:
-            static void parse(std::queue<std::string>& command);
+            static void parse(COMMAND& command);
         private:
-            static void set(std::queue<std::string>& command);
-            static void move(std::queue<std::string>& command);
+            static void set(COMMAND& command);
+            static void move(COMMAND& command);
             static void get();
         };
     };
@@ -105,51 +111,60 @@ private:
     class bounds
     {
     public:
-        static void parse(std::queue<std::string>& command);
+        static void parse(COMMAND& command);
     private:
-        static void set(std::queue<std::string>& command);
+        static void set(COMMAND& command);
         static void get();
     };
 
     class physics
     {
     public:
-        static void parse(std::queue<std::string>& command);
+        static void parse(COMMAND& command);
     private:
-        static void time(std::queue<std::string>& command);
-        static void kineticEnergy(std::queue<std::string>& command);
+        static void time(COMMAND& command);
+        static void kineticEnergy(COMMAND& command);
         class runahead
         {
         public:
-            static void parse(std::queue<std::string>& command);
+            static void parse(COMMAND& command);
         private:
-            static void get(std::queue<std::string>& command);
-            static void set(std::queue<std::string>& command);
+            static void get(COMMAND& command);
+            static void set(COMMAND& command);
         };
         class step
         {
         public:
-            static void parse(std::queue<std::string>& command);
+            static void parse(COMMAND& command);
         private:
-            static void get(std::queue<std::string>& command);
-            static void set(std::queue<std::string>& command);
+            static void get(COMMAND& command);
+            static void set(COMMAND& command);
         };
         class iterations
         {
         public:
-            static void parse(std::queue<std::string>& command);
+            static void parse(COMMAND& command);
         private:
             static void get();
-            static void set(std::queue<std::string>& command);
+            static void set(COMMAND& command);
         };
         class logkineticenergy
         {
         public:
-            static void parse(std::queue<std::string>& command);
+            static void parse(COMMAND& command);
         private:
-            static void begin(std::queue<std::string>& command);
+            static void begin(COMMAND& command);
             static void end();
         };
+    };
+
+    class wait
+    {
+    public:
+        static std::vector<std::pair<Time, COMMAND>> m_phys;
+        static std::vector<std::pair<Time, COMMAND>> m_time;
+
+        static void parse(COMMAND& command);
     };
 };
 

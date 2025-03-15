@@ -1,6 +1,11 @@
 #include "physics.hpp"
 
-class InputHandler{ public: static void parseInput(std::string inputCommand); };
+class InputHandler
+{
+public:
+    static void parseInput(std::string inputCommand);
+    static void checkWaiting();
+};
 
 bool operator== (const BallPair& a, const BallPair& b)
 {
@@ -124,6 +129,7 @@ void Physiker::loop()
 {
     while (m_state == AppState::simulation)
     {
+        InputHandler::checkWaiting();
         Inputer::beginInput();
         if (Inputer::hasInput())
         {
@@ -137,6 +143,8 @@ void Physiker::loop()
 
         handleBoundsCollisions();
         handleBallCollisions();
+
+        m_world.endTime = m_simulationTime;
 
         if (m_isLogging && m_simulationTime >= m_nextLogTime)
         {
@@ -234,6 +242,31 @@ void Physiker::handleBallCollisions()
         const Vector2d rotVa{prpndclr.inverse() * Va};
         const Vector2d rotVb{prpndclr.inverse() * Vb};
 
+        // rotated ball centers
+        Vector2d rotOa{prpndclr.inverse() * Oa};
+        Vector2d rotOb{prpndclr.inverse() * Ob};
+
+        const int centerDiffSign{sign(rotOa.y() - rotOb.y())};
+        // so that balls which are flying in opposite directions don't collide
+        if (centerDiffSign == sign(rotVa.y() - rotVb.y()))
+        {
+            return;
+        }
+
+        // this is done to correct the slight overlap between the balls
+        const double Ra{ballA.getRadius()};
+        const double Rb{ballB.getRadius()};
+
+        const double overlap{abs(rotOa.y() - rotOb.y()) - (Ra + Rb)};
+        const double correction{overlap / 2 * centerDiffSign};
+        
+        rotOa = {rotOa.x(), rotOa.y() + correction};
+        rotOb = {rotOb.x(), rotOb.y() - correction};
+
+        const Vector2d Oa2{prpndclr * rotOa};
+        const Vector2d Ob2{prpndclr * rotOb};
+        //if (rotOa.x() - rotOb.x());
+
         // rotatated velocity vectors after collision
         const Vector2d rotVa2
         {
@@ -253,8 +286,10 @@ void Physiker::handleBallCollisions()
         Debug::log("kinetic energy after collision: "
             + std::to_string((Ma * pow(Va2.norm(), 2) + Mb * pow(Vb2.norm(), 2)) / 2));
 
-        ballA.newKeyframe({Oauf, flipVector2d(Va2, Axis::Y), m_simulationTime});
-        ballB.newKeyframe({Obuf, flipVector2d(Vb2, Axis::Y), m_simulationTime});
+        ballA.newKeyframe({flipVector2d(Oa2, Axis::Y), flipVector2d(Va2, Axis::Y)
+            , m_simulationTime});
+        ballB.newKeyframe({flipVector2d(Ob2, Axis::Y), flipVector2d(Vb2, Axis::Y)
+            , m_simulationTime});
     }
 }
 
@@ -312,11 +347,14 @@ void Physiker::findCollisionTime()
         Debug::log("time: " + std::to_string(m_simulationTime.getNS()));
         Debug::log(std::to_string(bsTimestep.getNS()));
 
-        // makes sure that time actually moves forward
-        if (bsTimestep.getNS() == 1 
-            || m_simulationTime < startSimTime - m_timestep.getHalf())
+        if (bsTimestep.getNS() == 1)
         {
-            m_simulationTime += bsTimestep;
+            break;
+        }
+        // makes sure that time actually moves forward
+        if (m_simulationTime < startSimTime - m_timestep.getHalf())
+        {
+            m_simulationTime = startSimTime - m_timestep.getHalf();
             break;
         }
 

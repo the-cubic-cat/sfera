@@ -119,17 +119,24 @@ void Window::loop()
             }
         }
         m_currentTime = m_time;
+
+        if (m_world.isBeingEdited) { continue; }
+
         redraw();
     }
 }
 
 void Window::redraw()
 {
-    SDL_SetRenderDrawColor(m_rendererSDL, 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(m_rendererSDL, 255, 255, 255, 255);
     SDL_RenderClear(m_rendererSDL);
 
     m_clock.tick();    
-    m_time += Time::makeS(static_cast<double>(m_clock.delta) / 1000 * m_timescale);
+    if (m_time < m_world.endTime)
+    {
+        m_time += Time::makeS(static_cast<double>(m_clock.delta) / 1000 * m_timescale);
+    }
+    else { m_time = m_world.endTime; }
     //m_time = Time::makeMS(SDL_GetTicks64());
 
     //std::cout << m_time.getS() << "\n";
@@ -138,6 +145,7 @@ void Window::redraw()
     {
     for (const auto& b : m_world.getBalls())
     {
+        if (m_world.isBeingEdited) { continue; }
         drawCircle(b.getColor(), b.getPositionAtTime(m_time)
             , b.getRadius(), true);
     }
@@ -157,7 +165,7 @@ void Window::redraw()
         }
     }
     
-    drawRect({0, 0, 255, 255}
+    drawRect({0, 0, 0, 255}
         , m_world.getWorldBounds().value_or<Rect>({0, 0, 0, 0}), false);
 
     SDL_RenderPresent(m_rendererSDL);
